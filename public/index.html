@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>CloudLife</title>
+
+    <link rel="stylesheet"
+          href="style.css">
+
+</head>
+
+
+<body>
+
+
+<!-- SIDEBAR -->
+
+<aside class="sidebar">
+
+    <div class="logo">
+
+        ☁️
+
+        <span>CloudLife</span>
+
+    </div>
+
+
+    <p class="menu-title">
+        MAIN MENU
+    </p>
+
+
+    <button onclick="showSection('dashboard')"
+            class="menu-btn active">
+
+        📊 Dashboard
+
+    </button>
+
+
+    <button onclick="showSection('tasks')"
+            class="menu-btn">
+
+        ✅ Tasks
+
+    </button>
+
+
+    <button onclick="showSection('expenses')"
+            class="menu-btn">
+
+        💰 Expenses
+
+    </button>
+
+
+    <button onclick="showSection('notes')"
+            class="menu-btn">
+
+        📝 Notes
+
+    </button>
+
+
+    <button onclick="showSection('events')"
+            class="menu-btn">
+
+        📅 Events
+
+    </button>
+
+
+    <div class="cloud-info">
+
+        ☁️
+
+        <strong>Cloud Connected</strong>
+
+        <span>Supabase Database</span>
+
+    </div>
+
+</aside>
+
+
+
+<!-- MAIN -->
+
+<main class="main">
+
+
+<header class="header">
+
+    <div>
+
+        <h1 id="welcome">
+            Good Evening 👋
+        </h1>
+
+        <p>
+            Manage your everyday life from one place.
+        </p>
+
+    </div>
+
+
+    <div class="date-box">
+
+        📅
+
+        <span id="date"></span>
+
+    </div>
+
+</header>
+
+
+
+<!-- ================= DASHBOARD ================= -->
+
+<section id="dashboard"
+         class="section">
+
+
+    <div class="stats-grid">
+
+
+        <div class="stat-card">
+
+            <div class="stat-icon">
+                ✅
+            </div>
+
+            <div>
+
+                <p>Total Tasks</p>
+
+                <h2 id="taskCount">
+                    0
+                </h2>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="stat-card">
+
+            <div class="stat-icon">
+                🎯
+            </div>
+
+            <div>
+
+                <p>Completed</p>
+
+                <h2 id="completedCount">
+                    0
+                </h2>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="stat-card">
+
+            <div class="stat-icon">
+                💰
+            </div>
+
+            <div>
+
+                <p>Total Expenses</p>
+
+                <h2 id="expenseTotal">
+                    ₹0
+                </h2>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="stat-card">
+
+            <div class="stat-icon">
+                📝
+            </div>
+
+            <div>
+
+                <p>Notes</p>
+
+                <h2 id="noteCount">
+                    0
+                </h2>
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+
+    <div class="dashboard-grid">
+
+
+        <div class="panel">
+
+            <div class="panel-header">
+
+                <h2>
+                    ⚡ Quick Actions
+                </h2>
+
+            </div>
+
+
+            <div class="quick-actions">
+
+                <button onclick="showSection('tasks')">
+                    ➕ Add Task
+                </button>
+
+                <button onclick="showSection('expenses')">
+                    💰 Add Expense
+                </button>
+
+                <button onclick="showSection('notes')">
+                    📝 Add Note
+                </button>
+
+                <button onclick="showSection('events')">
+                    📅 Add Event
+                </button>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="panel">
+
+            <div class="panel-header">
+
+                <h2>
+                    ☁️ Cloud Status
+                </h2>
+
+                <span class="online">
+                    ● Online
+                </span>
+
+            </div>
+
+
+            <div class="cloud-status">
+
+                <div>
+                    <span>Database</span>
+                    <strong>Supabase PostgreSQL</strong>
+                </div>
+
+                <div>
+                    <span>Backend</span>
+                    <strong>Node.js API</strong>
+                </div>
+
+                <div>
+                    <span>Storage</span>
+                    <strong>Cloud Database</strong>
+                </div>
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+</section>
+
+
+
+<!-- ================= TASKS ================= -->
+
+<section id="tasks"
+         class="section hidden">
+
+
+    <div class="page-title">
+
+        <h1>✅ Tasks</h1>
+
+        <p>
+            Organize your daily activities.
+        </p>
+
+    </div>
+
+
+
+    <div class="panel">
+
+        <h2>Add New Task</h2>
+
+
+        <div class="form-grid">
+
+
+            <input
+                id="taskTitle"
+                type="text"
+                placeholder="Task title">
+
+
+            <input
+                id="taskDescription"
+                type="text"
+                placeholder="Description">
+
+
+            <select id="taskPriority">
+
+                <option value="Low">
+                    Low Priority
+                </option>
+
+                <option value="Medium" selected>
+                    Medium Priority
+                </option>
+
+                <option value="High">
+                    High Priority
+                </option>
+
+            </select>
+
+
+            <input
+                id="taskDate"
+                type="date">
+
+
+        </div>
+
+
+        <button class="primary-btn"
+                onclick="addTask()">
+
+            ➕ Add Task
+
+        </button>
+
+    </div>
+
+
+
+    <div class="panel">
+
+        <div class="panel-header">
+
+            <h2>My Tasks</h2>
+
+        </div>
+
+
+        <div id="taskList"
+             class="item-list">
+
+        </div>
+
+    </div>
+
+
+</section>
+
+
+
+<!-- ================= EXPENSES ================= -->
+
+<section id="expenses"
+         class="section hidden">
+
+
+    <div class="page-title">
+
+        <h1>💰 Expenses</h1>
+
+        <p>
+            Keep track of your daily spending.
+        </p>
+
+    </div>
+
+
+
+    <div class="panel">
+
+        <h2>Add Expense</h2>
+
+
+        <div class="form-grid">
+
+
+            <input
+                id="expenseTitle"
+                type="text"
+                placeholder="Expense name">
+
+
+            <input
+                id="expenseAmount"
+                type="number"
+                placeholder="Amount ₹">
+
+
+            <select id="expenseCategory">
+
+                <option>Food</option>
+
+                <option>Travel</option>
+
+                <option>Shopping</option>
+
+                <option>Education</option>
+
+                <option>Entertainment</option>
+
+                <option>Other</option>
+
+            </select>
+
+
+        </div>
+
+
+        <button class="primary-btn"
+                onclick="addExpense()">
+
+            ➕ Add Expense
+
+        </button>
+
+    </div>
+
+
+
+    <div class="panel">
+
+        <h2>Recent Expenses</h2>
+
+        <div id="expenseList"
+             class="item-list">
+
+        </div>
+
+    </div>
+
+
+</section>
+
+
+
+<!-- ================= NOTES ================= -->
+
+<section id="notes"
+         class="section hidden">
+
+
+    <div class="page-title">
+
+        <h1>📝 Notes</h1>
+
+        <p>
+            Store important thoughts and information.
+        </p>
+
+    </div>
+
+
+
+    <div class="panel">
+
+        <h2>Create Note</h2>
+
+
+        <input
+            id="noteTitle"
+            type="text"
+            placeholder="Note title">
+
+
+        <textarea
+            id="noteContent"
+            placeholder="Write your note here..."></textarea>
+
+
+        <button class="primary-btn"
+                onclick="addNote()">
+
+            💾 Save Note
+
+        </button>
+
+    </div>
+
+
+
+    <div class="panel">
+
+        <h2>My Notes</h2>
+
+        <div id="noteList"
+             class="item-list">
+
+        </div>
+
+    </div>
+
+
+</section>
+
+
+
+<!-- ================= EVENTS ================= -->
+
+<section id="events"
+         class="section hidden">
+
+
+    <div class="page-title">
+
+        <h1>📅 Events</h1>
+
+        <p>
+            Never miss an important event.
+        </p>
+
+    </div>
+
+
+
+    <div class="panel">
+
+        <h2>Add Event</h2>
+
+
+        <div class="form-grid">
+
+
+            <input
+                id="eventTitle"
+                type="text"
+                placeholder="Event title">
+
+
+            <input
+                id="eventDate"
+                type="date">
+
+
+            <input
+                id="eventTime"
+                type="time">
+
+
+            <input
+                id="eventDescription"
+                type="text"
+                placeholder="Description">
+
+
+        </div>
+
+
+        <button class="primary-btn"
+                onclick="addEvent()">
+
+            📅 Add Event
+
+        </button>
+
+    </div>
+
+
+
+    <div class="panel">
+
+        <h2>Upcoming Events</h2>
+
+        <div id="eventList"
+             class="item-list">
+
+        </div>
+
+    </div>
+
+
+</section>
+
+
+</main>
+
+
+<script src="script.js"></script>
+
+</body>
+
+</html>

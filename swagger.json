@@ -1,0 +1,409 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "CloudLife API",
+    "version": "1.0.0",
+    "description": "REST API for CloudLife Personal Life Management System"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local Development Server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Health",
+      "description": "Backend and database health"
+    },
+    {
+      "name": "Tasks",
+      "description": "Task management APIs"
+    },
+    {
+      "name": "Expenses",
+      "description": "Expense management APIs"
+    },
+    {
+      "name": "Notes",
+      "description": "Notes management APIs"
+    },
+    {
+      "name": "Events",
+      "description": "Event management APIs"
+    },
+    {
+      "name": "Dashboard",
+      "description": "Dashboard statistics"
+    }
+  ],
+  "paths": {
+    "/api/health": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Check backend and database health",
+        "responses": {
+          "200": {
+            "description": "Backend and database are working"
+          },
+          "500": {
+            "description": "Health check failed"
+          }
+        }
+      }
+    },
+
+    "/api/test": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Test Supabase connection",
+        "responses": {
+          "200": {
+            "description": "Supabase connection successful"
+          },
+          "500": {
+            "description": "Supabase connection failed"
+          }
+        }
+      }
+    },
+
+    "/api/tasks": {
+      "get": {
+        "tags": ["Tasks"],
+        "summary": "Get all tasks",
+        "responses": {
+          "200": {
+            "description": "List of tasks"
+          }
+        }
+      },
+
+      "post": {
+        "tags": ["Tasks"],
+        "summary": "Create a new task",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title"],
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "example": "Complete Cloud Computing Assignment"
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "Finish CloudLife project"
+                  },
+                  "priority": {
+                    "type": "string",
+                    "example": "High"
+                  },
+                  "due_date": {
+                    "type": "string",
+                    "format": "date",
+                    "example": "2026-09-20"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task created successfully"
+          },
+          "400": {
+            "description": "Invalid task data"
+          }
+        }
+      }
+    },
+
+    "/api/tasks/{id}": {
+      "put": {
+        "tags": ["Tasks"],
+        "summary": "Update task status",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "example": 1
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "example": "Completed"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task updated successfully"
+          }
+        }
+      },
+
+      "delete": {
+        "tags": ["Tasks"],
+        "summary": "Delete a task",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Task deleted successfully"
+          }
+        }
+      }
+    },
+
+    "/api/expenses": {
+      "get": {
+        "tags": ["Expenses"],
+        "summary": "Get all expenses",
+        "responses": {
+          "200": {
+            "description": "List of expenses"
+          }
+        }
+      },
+
+      "post": {
+        "tags": ["Expenses"],
+        "summary": "Create a new expense",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title", "amount"],
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "example": "Lunch"
+                  },
+                  "amount": {
+                    "type": "number",
+                    "example": 150
+                  },
+                  "category": {
+                    "type": "string",
+                    "example": "Food"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Expense created successfully"
+          }
+        }
+      }
+    },
+
+    "/api/expenses/{id}": {
+      "delete": {
+        "tags": ["Expenses"],
+        "summary": "Delete an expense",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expense deleted successfully"
+          }
+        }
+      }
+    },
+
+    "/api/notes": {
+      "get": {
+        "tags": ["Notes"],
+        "summary": "Get all notes",
+        "responses": {
+          "200": {
+            "description": "List of notes"
+          }
+        }
+      },
+
+      "post": {
+        "tags": ["Notes"],
+        "summary": "Create a new note",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title"],
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "example": "Important Reminder"
+                  },
+                  "content": {
+                    "type": "string",
+                    "example": "Submit project tomorrow"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Note created successfully"
+          }
+        }
+      }
+    },
+
+    "/api/notes/{id}": {
+      "delete": {
+        "tags": ["Notes"],
+        "summary": "Delete a note",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Note deleted successfully"
+          }
+        }
+      }
+    },
+
+    "/api/events": {
+      "get": {
+        "tags": ["Events"],
+        "summary": "Get all events",
+        "responses": {
+          "200": {
+            "description": "List of events"
+          }
+        }
+      },
+
+      "post": {
+        "tags": ["Events"],
+        "summary": "Create a new event",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title", "event_date"],
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "example": "Project Presentation"
+                  },
+                  "event_date": {
+                    "type": "string",
+                    "format": "date",
+                    "example": "2026-09-25"
+                  },
+                  "event_time": {
+                    "type": "string",
+                    "example": "10:00"
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "CloudLife project demonstration"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Event created successfully"
+          }
+        }
+      }
+    },
+
+    "/api/events/{id}": {
+      "delete": {
+        "tags": ["Events"],
+        "summary": "Delete an event",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Event deleted successfully"
+          }
+        }
+      }
+    },
+
+    "/api/stats": {
+      "get": {
+        "tags": ["Dashboard"],
+        "summary": "Get dashboard statistics",
+        "responses": {
+          "200": {
+            "description": "Dashboard statistics"
+          }
+        }
+      }
+    }
+  }
+}
