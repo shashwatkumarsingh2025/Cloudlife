@@ -81,28 +81,82 @@ async function loadStats() {
 
     try {
 
-        const response =
-            await fetch("/api/stats");
+        // Get actual data from the backend
+        const [tasksResponse, expensesResponse, notesResponse] =
+            await Promise.all([
+                fetch("/api/tasks"),
+                fetch("/api/expenses"),
+                fetch("/api/notes")
+            ]);
 
-        const data =
-            await response.json();
+        if (!tasksResponse.ok ||
+            !expensesResponse.ok ||
+            !notesResponse.ok) {
 
+            throw new Error("Unable to load dashboard data.");
+
+        }
+
+
+        const tasks =
+            await tasksResponse.json();
+
+        const expenses =
+            await expensesResponse.json();
+
+        const notes =
+            await notesResponse.json();
+
+
+        // ========================================
+        // TOTAL TASKS
+        // ========================================
 
         document.getElementById("taskCount")
-            .textContent = data.tasks;
+            .textContent = tasks.length;
+
+
+        // ========================================
+        // COMPLETED TASKS
+        // ========================================
+
+        const completedTasks =
+            tasks.filter(task =>
+                String(task.status || "").toLowerCase() === "completed"
+            ).length;
 
 
         document.getElementById("completedCount")
-            .textContent = data.completedTasks;
+            .textContent = completedTasks;
+
+
+        // ========================================
+        // TOTAL EXPENSES
+        // ========================================
+
+        const totalExpenses =
+            expenses.reduce((total, expense) => {
+
+                const amount =
+                    Number(expense.amount);
+
+                return total +
+                    (Number.isFinite(amount) ? amount : 0);
+
+            }, 0);
 
 
         document.getElementById("expenseTotal")
             .textContent =
-            "₹" + Number(data.expenses).toFixed(2);
+            "₹" + totalExpenses.toFixed(2);
 
+
+        // ========================================
+        // TOTAL NOTES
+        // ========================================
 
         document.getElementById("noteCount")
-            .textContent = data.notes;
+            .textContent = notes.length;
 
 
     } catch (error) {
@@ -182,13 +236,13 @@ async function loadTasks() {
                         Priority:
 
                         <span class="badge ${priority}">
-                            ${escapeHTML(task.priority)}
+                            ${escapeHTML(task.priority || "Medium")}
                         </span>
 
                     </p>
 
                     <p>
-                        Status: ${escapeHTML(task.status)}
+                        Status: ${escapeHTML(task.status || "Pending")}
                     </p>
 
                 </div>
@@ -212,7 +266,9 @@ async function loadTasks() {
                     <button
                         class="delete-btn"
                         onclick="deleteTask(${task.id})">
+
                         🗑
+
                     </button>
 
                 </div>
@@ -450,7 +506,7 @@ async function loadExpenses() {
 
                     <p>
                         Category:
-                        ${escapeHTML(expense.category)}
+                        ${escapeHTML(expense.category || "")}
                     </p>
 
                 </div>
@@ -459,7 +515,7 @@ async function loadExpenses() {
                 <div>
 
                     <strong>
-                        ₹${Number(expense.amount).toFixed(2)}
+                        ₹${Number(expense.amount || 0).toFixed(2)}
                     </strong>
 
 
@@ -520,31 +576,45 @@ async function addExpense() {
     }
 
 
-    const response =
-        await fetch("/api/expenses", {
+    try {
 
-            method: "POST",
+        const response =
+            await fetch("/api/expenses", {
 
-            headers: {
-                "Content-Type": "application/json"
-            },
+                method: "POST",
 
-            body: JSON.stringify({
+                headers: {
+                    "Content-Type": "application/json"
+                },
 
-                title,
+                body: JSON.stringify({
 
-                amount,
+                    title,
 
-                category
+                    amount,
 
-            })
+                    category
 
-        });
+                })
+
+            });
 
 
-    if (response.ok) {
+        const result =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            alert(result.error || "Unable to add expense.");
+
+            return;
+
+        }
+
 
         alert("Expense added!");
+
 
         document.getElementById("expenseTitle")
             .value = "";
@@ -556,6 +626,13 @@ async function addExpense() {
         loadExpenses();
 
         loadStats();
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("Unable to add expense.");
 
     }
 
@@ -697,29 +774,43 @@ async function addNote() {
     }
 
 
-    const response =
-        await fetch("/api/notes", {
+    try {
 
-            method: "POST",
+        const response =
+            await fetch("/api/notes", {
 
-            headers: {
-                "Content-Type": "application/json"
-            },
+                method: "POST",
 
-            body: JSON.stringify({
+                headers: {
+                    "Content-Type": "application/json"
+                },
 
-                title,
+                body: JSON.stringify({
 
-                content
+                    title,
 
-            })
+                    content
 
-        });
+                })
+
+            });
 
 
-    if (response.ok) {
+        const result =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            alert(result.error || "Unable to save note.");
+
+            return;
+
+        }
+
 
         alert("Note saved!");
+
 
         document.getElementById("noteTitle")
             .value = "";
@@ -731,6 +822,13 @@ async function addNote() {
         loadNotes();
 
         loadStats();
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("Unable to save note.");
 
     }
 
@@ -816,7 +914,7 @@ async function loadEvents() {
                     </h3>
 
                     <p>
-                        📅 ${escapeHTML(event.event_date)}
+                        📅 ${escapeHTML(event.event_date || "")}
                     </p>
 
                     <p>
@@ -890,33 +988,47 @@ async function addEvent() {
     }
 
 
-    const response =
-        await fetch("/api/events", {
+    try {
 
-            method: "POST",
+        const response =
+            await fetch("/api/events", {
 
-            headers: {
-                "Content-Type": "application/json"
-            },
+                method: "POST",
 
-            body: JSON.stringify({
+                headers: {
+                    "Content-Type": "application/json"
+                },
 
-                title,
+                body: JSON.stringify({
 
-                event_date,
+                    title,
 
-                event_time,
+                    event_date,
 
-                description
+                    event_time,
 
-            })
+                    description
 
-        });
+                })
+
+            });
 
 
-    if (response.ok) {
+        const result =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            alert(result.error || "Unable to add event.");
+
+            return;
+
+        }
+
 
         alert("Event added!");
+
 
         document.getElementById("eventTitle")
             .value = "";
@@ -934,6 +1046,13 @@ async function addEvent() {
         loadEvents();
 
         loadStats();
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("Unable to add event.");
 
     }
 
@@ -978,8 +1097,10 @@ function escapeHTML(value) {
     const div =
         document.createElement("div");
 
+
     div.textContent =
         value ?? "";
+
 
     return div.innerHTML;
 
