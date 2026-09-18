@@ -9,24 +9,17 @@ const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
 
-
-// ========================================
+// ===============================
 // MIDDLEWARE
-// ========================================
+// ===============================
 
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
 
-app.use(
-    express.static(
-        path.join(__dirname, "public")
-    )
-);
-
-
-// ========================================
+// ===============================
 // SWAGGER API DOCUMENTATION
-// ========================================
+// ===============================
 
 app.use(
     "/api-docs",
@@ -34,1073 +27,570 @@ app.use(
     swaggerUi.setup(swaggerDocument)
 );
 
-
-// ========================================
+// ===============================
 // SUPABASE CONNECTION
-// ========================================
+// ===============================
 
 const supabase = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_KEY
 );
 
-
-// ========================================
-// HOME / FRONTEND
-// ========================================
+// ===============================
+// FRONTEND
+// ===============================
 
 app.get("/", (req, res) => {
-
-    res.sendFile(
-        path.join(
-            __dirname,
-            "public",
-            "index.html"
-        )
-    );
-
+    res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-
-// ========================================
-// BACKEND HEALTH CHECK
-// ========================================
+// ===============================
+// HEALTH CHECK
+// ===============================
 
 app.get("/api/health", async (req, res) => {
-
     try {
+        const tables = ["tasks", "expenses", "notes", "events"];
+        const results = {};
 
-        const {
-            data: tasks,
-            error: taskError
-        } = await supabase
-            .from("tasks")
-            .select("*");
+        for (const table of tables) {
+            const { count, error } = await supabase
+                .from(table)
+                .select("*", { count: "exact", head: true });
 
+            if (error) {
+                throw error;
+            }
 
-        const {
-            data: expenses,
-            error: expenseError
-        } = await supabase
-            .from("expenses")
-            .select("*");
-
-
-        const {
-            data: notes,
-            error: noteError
-        } = await supabase
-            .from("notes")
-            .select("*");
-
-
-        const {
-            data: events,
-            error: eventError
-        } = await supabase
-            .from("events")
-            .select("*");
-
-
-        const errors = [];
-
-
-        if (taskError) {
-
-            errors.push({
-                module: "Tasks",
-                error: taskError.message
-            });
-
+            results[table] = {
+                status: "WORKING",
+                records: count || 0
+            };
         }
-
-
-        if (expenseError) {
-
-            errors.push({
-                module: "Expenses",
-                error: expenseError.message
-            });
-
-        }
-
-
-        if (noteError) {
-
-            errors.push({
-                module: "Notes",
-                error: noteError.message
-            });
-
-        }
-
-
-        if (eventError) {
-
-            errors.push({
-                module: "Events",
-                error: eventError.message
-            });
-
-        }
-
-
-        if (errors.length > 0) {
-
-            return res.status(500).json({
-
-                success: false,
-
-                message:
-                    "CloudLife backend has errors",
-
-                backend: {
-
-                    status: "ONLINE",
-
-                    framework:
-                        "Node.js + Express"
-
-                },
-
-                database: {
-
-                    status: "ERROR",
-
-                    provider:
-                        "Supabase PostgreSQL"
-
-                },
-
-                modules: {
-
-                    tasks:
-                        !taskError,
-
-                    expenses:
-                        !expenseError,
-
-                    notes:
-                        !noteError,
-
-                    events:
-                        !eventError
-
-                },
-
-                errors
-
-            });
-
-        }
-
 
         res.json({
-
             success: true,
-
-            message:
-                "CloudLife Backend & Supabase are working perfectly!",
-
-
+            message: "CloudLife Backend & Supabase are working perfectly!",
             backend: {
-
                 status: "ONLINE",
-
-                framework:
-                    "Node.js + Express",
-
-                api:
-                    "REST API"
-
+                framework: "Node.js + Express",
+                api: "REST API"
             },
-
-
             database: {
-
                 status: "CONNECTED",
-
-                provider:
-                    "Supabase PostgreSQL"
-
+                provider: "Supabase PostgreSQL"
             },
-
-
             modules: {
-
-                tasks: {
-
-                    status: "WORKING",
-
-                    records:
-                        tasks.length
-
-                },
-
-                expenses: {
-
-                    status: "WORKING",
-
-                    records:
-                        expenses.length
-
-                },
-
-                notes: {
-
-                    status: "WORKING",
-
-                    records:
-                        notes.length
-
-                },
-
-                events: {
-
-                    status: "WORKING",
-
-                    records:
-                        events.length
-
-                }
-
+                tasks: results.tasks,
+                expenses: results.expenses,
+                notes: results.notes,
+                events: results.events
             },
-
-
-            timestamp:
-                new Date().toISOString()
-
+            timestamp: new Date().toISOString()
         });
 
-    }
-
-    catch (error) {
-
-        console.error(error);
-
+    } catch (error) {
         res.status(500).json({
-
             success: false,
-
-            message:
-                "Backend health check failed",
-
-            error:
-                error.message
-
+            message: "Health check failed",
+            error: error.message
         });
-
     }
-
 });
 
+// ===============================
+// TEST API
+// ===============================
 
-// ========================================
-// SUPABASE CONNECTION TEST
-// ========================================
-
-app.get("/api/test", async (req, res) => {
-
-    const {
-        data,
-        error
-    } = await supabase
-        .from("tasks")
-        .select("*")
-        .limit(1);
-
-
-    if (error) {
-
-        console.error(error);
-
-        return res.status(500).json({
-
-            success: false,
-
-            error:
-                error.message
-
-        });
-
-    }
-
-
+app.get("/api/test", (req, res) => {
     res.json({
-
         success: true,
-
-        message:
-            "CloudLife connected to Supabase!",
-
-        data
-
+        message: "CloudLife API is working!"
     });
-
 });
 
+// =====================================================
+// TASKS
+// =====================================================
 
-// ========================================
-// TASKS - GET ALL
-// ========================================
-
+// GET ALL TASKS
 app.get("/api/tasks", async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from("tasks")
+            .select("*")
+            .order("id", { ascending: false });
 
-    const {
-        data,
-        error
-    } = await supabase
-        .from("tasks")
-        .select("*")
-        .order(
-            "created_at",
-            {
-                ascending: false
-            }
-        );
+        if (error) {
+            return res.status(500).json({
+                success: false,
+                error: error.message
+            });
+        }
 
-
-    if (error) {
-
-        return res.status(500).json({
-
-            error:
-                error.message
-
+        res.json({
+            success: true,
+            data: data
         });
 
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
     }
-
-
-    res.json(data);
-
 });
 
-
-// ========================================
-// TASKS - CREATE
-// ========================================
-
+// ADD TASK
 app.post("/api/tasks", async (req, res) => {
+    try {
+        const { title, description, status, due_date } = req.body;
 
-    const {
-        title,
-        description,
-        priority,
-        due_date
-    } = req.body;
+        const { data, error } = await supabase
+            .from("tasks")
+            .insert([
+                {
+                    title,
+                    description,
+                    status: status || "Pending",
+                    due_date
+                }
+            ])
+            .select();
 
+        if (error) {
+            return res.status(500).json({
+                success: false,
+                error: error.message
+            });
+        }
 
-    if (!title) {
-
-        return res.status(400).json({
-
-            error:
-                "Task title is required"
-
+        res.status(201).json({
+            success: true,
+            message: "Task added successfully",
+            data: data
         });
 
-    }
-
-
-    const {
-        data,
-        error
-    } = await supabase
-        .from("tasks")
-        .insert([{
-
-            title,
-
-            description,
-
-            priority,
-
-            due_date:
-                due_date || null
-
-        }])
-        .select();
-
-
-    if (error) {
-
-        return res.status(500).json({
-
-            error:
-                error.message
-
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
         });
-
     }
-
-
-    res.json(data[0]);
-
 });
 
-
-// ========================================
-// TASKS - UPDATE STATUS
-// ========================================
-
+// UPDATE TASK STATUS
 app.put("/api/tasks/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
 
-    const {
-        id
-    } = req.params;
+        const { data, error } = await supabase
+            .from("tasks")
+            .update({ status })
+            .eq("id", id)
+            .select();
 
+        if (error) {
+            return res.status(500).json({
+                success: false,
+                error: error.message
+            });
+        }
 
-    const {
-        status
-    } = req.body;
-
-
-    const {
-        data,
-        error
-    } = await supabase
-        .from("tasks")
-        .update({
-
-            status
-
-        })
-        .eq("id", id)
-        .select();
-
-
-    if (error) {
-
-        return res.status(500).json({
-
-            error:
-                error.message
-
+        res.json({
+            success: true,
+            message: "Task updated successfully",
+            data: data
         });
 
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
     }
-
-
-    res.json(data[0]);
-
 });
 
-
-// ========================================
-// TASKS - DELETE
-// ========================================
-
+// DELETE TASK
 app.delete("/api/tasks/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
 
-    const {
-        id
-    } = req.params;
+        const { error } = await supabase
+            .from("tasks")
+            .delete()
+            .eq("id", id);
 
+        if (error) {
+            return res.status(500).json({
+                success: false,
+                error: error.message
+            });
+        }
 
-    const {
-        error
-    } = await supabase
-        .from("tasks")
-        .delete()
-        .eq("id", id);
-
-
-    if (error) {
-
-        return res.status(500).json({
-
-            error:
-                error.message
-
+        res.json({
+            success: true,
+            message: "Task deleted successfully"
         });
 
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
     }
-
-
-    res.json({
-
-        message:
-            "Task deleted successfully"
-
-    });
-
 });
 
+// =====================================================
+// EXPENSES
+// =====================================================
 
-// ========================================
-// EXPENSES - GET ALL
-// ========================================
-
+// GET ALL EXPENSES
 app.get("/api/expenses", async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from("expenses")
+            .select("*")
+            .order("id", { ascending: false });
 
-    const {
-        data,
-        error
-    } = await supabase
-        .from("expenses")
-        .select("*")
-        .order(
-            "created_at",
-            {
-                ascending: false
-            }
-        );
+        if (error) {
+            return res.status(500).json({
+                success: false,
+                error: error.message
+            });
+        }
 
-
-    if (error) {
-
-        return res.status(500).json({
-
-            error:
-                error.message
-
+        res.json({
+            success: true,
+            data: data
         });
 
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
     }
-
-
-    res.json(data);
-
 });
 
-
-// ========================================
-// EXPENSES - CREATE
-// ========================================
-
+// ADD EXPENSE
 app.post("/api/expenses", async (req, res) => {
+    try {
+        const { title, amount, category, expense_date } = req.body;
 
-    const {
-        title,
-        amount,
-        category
-    } = req.body;
+        const { data, error } = await supabase
+            .from("expenses")
+            .insert([
+                {
+                    title,
+                    amount,
+                    category,
+                    expense_date
+                }
+            ])
+            .select();
 
+        if (error) {
+            return res.status(500).json({
+                success: false,
+                error: error.message
+            });
+        }
 
-    if (!title || !amount) {
-
-        return res.status(400).json({
-
-            error:
-                "Title and amount are required"
-
+        res.status(201).json({
+            success: true,
+            message: "Expense added successfully",
+            data: data
         });
 
-    }
-
-
-    const {
-        data,
-        error
-    } = await supabase
-        .from("expenses")
-        .insert([{
-
-            title,
-
-            amount,
-
-            category
-
-        }])
-        .select();
-
-
-    if (error) {
-
-        return res.status(500).json({
-
-            error:
-                error.message
-
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
         });
-
     }
-
-
-    res.json(data[0]);
-
 });
 
+// DELETE EXPENSE
+app.delete("/api/expenses/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
 
-// ========================================
-// EXPENSES - DELETE
-// ========================================
-
-app.delete(
-    "/api/expenses/:id",
-    async (req, res) => {
-
-        const {
-            id
-        } = req.params;
-
-
-        const {
-            error
-        } = await supabase
+        const { error } = await supabase
             .from("expenses")
             .delete()
             .eq("id", id);
 
-
         if (error) {
-
             return res.status(500).json({
-
-                error:
-                    error.message
-
+                success: false,
+                error: error.message
             });
-
         }
 
+        res.json({
+            success: true,
+            message: "Expense deleted successfully"
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// =====================================================
+// NOTES
+// =====================================================
+
+// GET ALL NOTES
+app.get("/api/notes", async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from("notes")
+            .select("*")
+            .order("id", { ascending: false });
+
+        if (error) {
+            return res.status(500).json({
+                success: false,
+                error: error.message
+            });
+        }
 
         res.json({
-
-            message:
-                "Expense deleted successfully"
-
+            success: true,
+            data: data
         });
 
-    }
-);
-
-
-// ========================================
-// NOTES - GET ALL
-// ========================================
-
-app.get("/api/notes", async (req, res) => {
-
-    const {
-        data,
-        error
-    } = await supabase
-        .from("notes")
-        .select("*")
-        .order(
-            "created_at",
-            {
-                ascending: false
-            }
-        );
-
-
-    if (error) {
-
-        return res.status(500).json({
-
-            error:
-                error.message
-
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
         });
-
     }
-
-
-    res.json(data);
-
 });
 
-
-// ========================================
-// NOTES - CREATE
-// ========================================
-
+// ADD NOTE
 app.post("/api/notes", async (req, res) => {
+    try {
+        const { title, content } = req.body;
 
-    const {
-        title,
-        content
-    } = req.body;
+        const { data, error } = await supabase
+            .from("notes")
+            .insert([
+                {
+                    title,
+                    content
+                }
+            ])
+            .select();
 
+        if (error) {
+            return res.status(500).json({
+                success: false,
+                error: error.message
+            });
+        }
 
-    if (!title) {
-
-        return res.status(400).json({
-
-            error:
-                "Note title is required"
-
+        res.status(201).json({
+            success: true,
+            message: "Note added successfully",
+            data: data
         });
 
-    }
-
-
-    const {
-        data,
-        error
-    } = await supabase
-        .from("notes")
-        .insert([{
-
-            title,
-
-            content
-
-        }])
-        .select();
-
-
-    if (error) {
-
-        return res.status(500).json({
-
-            error:
-                error.message
-
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
         });
-
     }
-
-
-    res.json(data[0]);
-
 });
 
+// DELETE NOTE
+app.delete("/api/notes/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
 
-// ========================================
-// NOTES - DELETE
-// ========================================
-
-app.delete(
-    "/api/notes/:id",
-    async (req, res) => {
-
-        const {
-            id
-        } = req.params;
-
-
-        const {
-            error
-        } = await supabase
+        const { error } = await supabase
             .from("notes")
             .delete()
             .eq("id", id);
 
-
         if (error) {
-
             return res.status(500).json({
-
-                error:
-                    error.message
-
+                success: false,
+                error: error.message
             });
-
         }
 
+        res.json({
+            success: true,
+            message: "Note deleted successfully"
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// =====================================================
+// EVENTS
+// =====================================================
+
+// GET ALL EVENTS
+app.get("/api/events", async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from("events")
+            .select("*")
+            .order("id", { ascending: false });
+
+        if (error) {
+            return res.status(500).json({
+                success: false,
+                error: error.message
+            });
+        }
 
         res.json({
-
-            message:
-                "Note deleted successfully"
-
+            success: true,
+            data: data
         });
 
-    }
-);
-
-
-// ========================================
-// EVENTS - GET ALL
-// ========================================
-
-app.get("/api/events", async (req, res) => {
-
-    const {
-        data,
-        error
-    } = await supabase
-        .from("events")
-        .select("*")
-        .order(
-            "event_date",
-            {
-                ascending: true
-            }
-        );
-
-
-    if (error) {
-
-        return res.status(500).json({
-
-            error:
-                error.message
-
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
         });
-
     }
-
-
-    res.json(data);
-
 });
 
-
-// ========================================
-// EVENTS - CREATE
-// ========================================
-
+// ADD EVENT
 app.post("/api/events", async (req, res) => {
+    try {
+        const { title, description, event_date, event_time } = req.body;
 
-    const {
-        title,
-        event_date,
-        event_time,
-        description
-    } = req.body;
+        const { data, error } = await supabase
+            .from("events")
+            .insert([
+                {
+                    title,
+                    description,
+                    event_date,
+                    event_time
+                }
+            ])
+            .select();
 
+        if (error) {
+            return res.status(500).json({
+                success: false,
+                error: error.message
+            });
+        }
 
-    if (!title || !event_date) {
-
-        return res.status(400).json({
-
-            error:
-                "Title and date are required"
-
+        res.status(201).json({
+            success: true,
+            message: "Event added successfully",
+            data: data
         });
 
-    }
-
-
-    const {
-        data,
-        error
-    } = await supabase
-        .from("events")
-        .insert([{
-
-            title,
-
-            event_date,
-
-            event_time:
-                event_time || null,
-
-            description
-
-        }])
-        .select();
-
-
-    if (error) {
-
-        return res.status(500).json({
-
-            error:
-                error.message
-
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
         });
-
     }
-
-
-    res.json(data[0]);
-
 });
 
+// DELETE EVENT
+app.delete("/api/events/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
 
-// ========================================
-// EVENTS - DELETE
-// ========================================
-
-app.delete(
-    "/api/events/:id",
-    async (req, res) => {
-
-        const {
-            id
-        } = req.params;
-
-
-        const {
-            error
-        } = await supabase
+        const { error } = await supabase
             .from("events")
             .delete()
             .eq("id", id);
 
-
         if (error) {
-
             return res.status(500).json({
-
-                error:
-                    error.message
-
+                success: false,
+                error: error.message
             });
-
         }
 
-
         res.json({
-
-            message:
-                "Event deleted successfully"
-
+            success: true,
+            message: "Event deleted successfully"
         });
 
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
     }
-);
+});
 
-
-// ========================================
+// =====================================================
 // DASHBOARD STATISTICS
-// ========================================
+// =====================================================
 
 app.get("/api/stats", async (req, res) => {
-
     try {
-
-        const {
-            data: tasks
-        } = await supabase
-            .from("tasks")
-            .select("*");
-
-
-        const {
-            data: expenses
-        } = await supabase
-            .from("expenses")
-            .select("*");
-
-
-        const {
-            data: notes
-        } = await supabase
-            .from("notes")
-            .select("*");
-
-
-        const {
-            data: events
-        } = await supabase
-            .from("events")
-            .select("*");
-
-
-        const taskData =
-            tasks || [];
-
-
-        const expenseData =
-            expenses || [];
-
-
-        const noteData =
-            notes || [];
-
-
-        const eventData =
-            events || [];
-
-
-        const completedTasks =
-            taskData.filter(
-                task =>
-                    task.status === "Completed"
-            ).length;
-
-
-        const totalExpenses =
-            expenseData.reduce(
-
-                (sum, expense) =>
-                    sum +
-                    Number(
-                        expense.amount
-                    ),
-
-                0
-
-            );
-
+        const [tasks, expenses, notes, events] = await Promise.all([
+            supabase.from("tasks").select("*", { count: "exact", head: true }),
+            supabase.from("expenses").select("*", { count: "exact", head: true }),
+            supabase.from("notes").select("*", { count: "exact", head: true }),
+            supabase.from("events").select("*", { count: "exact", head: true })
+        ]);
 
         res.json({
-
-            tasks:
-                taskData.length,
-
-            completedTasks,
-
-            expenses:
-                totalExpenses,
-
-            notes:
-                noteData.length,
-
-            events:
-                eventData.length
-
+            success: true,
+            statistics: {
+                tasks: tasks.count || 0,
+                expenses: expenses.count || 0,
+                notes: notes.count || 0,
+                events: events.count || 0
+            }
         });
 
-    }
-
-    catch (error) {
-
+    } catch (error) {
         res.status(500).json({
-
-            error:
-                error.message
-
+            success: false,
+            error: error.message
         });
-
     }
-
 });
 
-
-// ========================================
-// 404 API HANDLER
-// ========================================
+// =====================================================
+// API 404 HANDLER
+// =====================================================
 
 app.use("/api", (req, res) => {
-
     res.status(404).json({
-
         success: false,
-
-        message:
-            "API endpoint not found",
-
-        path:
-            req.originalUrl
-
+        message: "API endpoint not found"
     });
-
 });
 
+// =====================================================
+// START SERVER
+// =====================================================
 
-// ========================================
-// SERVER START
-// ========================================
+const PORT = process.env.PORT || 3000;
 
-const PORT =
-    process.env.PORT || 3000;
-
-
-app.listen(PORT, () => {
-
-    console.log(
-        `CloudLife running on port ${PORT}`
-    );
-
-    console.log(
-        `Frontend: http://localhost:${PORT}`
-    );
-
-    console.log(
-        `Swagger: http://localhost:${PORT}/api-docs`
-    );
-
-    console.log(
-        `Health: http://localhost:${PORT}/api/health`
-    );
-
+app.listen(PORT, "0.0.0.0", () => {
+    console.log(`CloudLife running on port ${PORT}`);
+    console.log(`Frontend: http://localhost:${PORT}`);
+    console.log(`Swagger: http://localhost:${PORT}/api-docs`);
+    console.log(`Health: http://localhost:${PORT}/api/health`);
 });
