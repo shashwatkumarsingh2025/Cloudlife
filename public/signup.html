@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>CloudLife - Sign Up</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+
+            min-height: 100vh;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-family: Arial, sans-serif;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #0b1220,
+                    #16254a,
+                    #24144f
+                );
+
+            color: white;
+        }
+
+        .container {
+
+            width: 420px;
+
+            padding: 40px;
+
+            border-radius: 20px;
+
+            background: rgba(255,255,255,0.08);
+
+            backdrop-filter: blur(15px);
+
+            box-shadow:
+                0 20px 50px rgba(0,0,0,0.4);
+        }
+
+        .logo {
+
+            text-align: center;
+
+            font-size: 38px;
+
+            font-weight: bold;
+
+            color: #55d8ff;
+
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+
+            text-align: center;
+
+            color: #b8c5df;
+
+            margin-bottom: 30px;
+        }
+
+        h2 {
+
+            text-align: center;
+
+            margin-bottom: 25px;
+        }
+
+        label {
+
+            display: block;
+
+            margin-bottom: 8px;
+
+            color: #dbe5ff;
+        }
+
+        input {
+
+            width: 100%;
+
+            padding: 13px;
+
+            margin-bottom: 18px;
+
+            border-radius: 10px;
+
+            border: 1px solid #46577e;
+
+            background: #101a32;
+
+            color: white;
+
+            font-size: 15px;
+        }
+
+        input:focus {
+
+            outline: none;
+
+            border-color: #55d8ff;
+        }
+
+        button {
+
+            width: 100%;
+
+            padding: 14px;
+
+            border: none;
+
+            border-radius: 10px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #55d8ff,
+                    #9167ff
+                );
+
+            color: #07101f;
+
+            font-weight: bold;
+
+            font-size: 16px;
+
+            cursor: pointer;
+        }
+
+        button:hover {
+
+            opacity: 0.9;
+        }
+
+        .message {
+
+            margin-top: 15px;
+
+            text-align: center;
+
+            min-height: 20px;
+        }
+
+        .login {
+
+            text-align: center;
+
+            margin-top: 25px;
+
+            color: #b8c5df;
+        }
+
+        .login a {
+
+            color: #55d8ff;
+
+            text-decoration: none;
+
+            font-weight: bold;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+    <div class="logo">
+        CLOUDLIFE
+    </div>
+
+    <div class="subtitle">
+        Your Life. Organized in the Cloud.
+    </div>
+
+    <h2>Create Account</h2>
+
+
+    <form id="signupForm">
+
+        <label for="name">
+            Name
+        </label>
+
+        <input
+            type="text"
+            id="name"
+            placeholder="Enter your name"
+            required
+        >
+
+
+        <label for="email">
+            Email
+        </label>
+
+        <input
+            type="email"
+            id="email"
+            placeholder="Enter your email"
+            required
+        >
+
+
+        <label for="password">
+            Password
+        </label>
+
+        <input
+            type="password"
+            id="password"
+            placeholder="Minimum 6 characters"
+            minlength="6"
+            required
+        >
+
+
+        <button type="submit">
+            CREATE ACCOUNT
+        </button>
+
+    </form>
+
+
+    <div
+        class="message"
+        id="message">
+    </div>
+
+
+    <div class="login">
+
+        Already have an account?
+
+        <a href="/login.html">
+            Login
+        </a>
+
+    </div>
+
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="config.js"></script>
+
+
+<script>
+
+const supabaseClient =
+    window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
+    );
+
+
+const form =
+    document.getElementById("signupForm");
+
+const message =
+    document.getElementById("message");
+
+
+form.addEventListener(
+    "submit",
+    async function(event) {
+
+        event.preventDefault();
+
+
+        message.textContent =
+            "Creating account...";
+
+        message.style.color =
+            "#55d8ff";
+
+
+        const name =
+            document.getElementById("name").value.trim();
+
+
+        const email =
+            document.getElementById("email").value.trim();
+
+
+        const password =
+            document.getElementById("password").value;
+
+
+        try {
+
+            const {
+                data,
+                error
+            } =
+            await supabaseClient.auth.signUp({
+
+                email: email,
+
+                password: password,
+
+                options: {
+
+                    data: {
+
+                        name: name
+
+                    }
+
+                }
+
+            });
+
+
+            if (error) {
+
+                message.textContent =
+                    error.message;
+
+                message.style.color =
+                    "#ff7777";
+
+                return;
+
+            }
+
+
+            message.textContent =
+                "Account created successfully!";
+
+            message.style.color =
+                "#65e6aa";
+
+
+            setTimeout(
+                function() {
+
+                    window.location.href =
+                        "/login.html";
+
+                },
+                1200
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "Signup error:",
+                error
+            );
+
+            message.textContent =
+                "Something went wrong.";
+
+            message.style.color =
+                "#ff7777";
+
+        }
+
+    }
+);
+
+</script>
+
+
+</body>
+
+</html>
