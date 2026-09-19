@@ -5,620 +5,966 @@
 
     <meta charset="UTF-8">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-    <title>CloudLife</title>
+    <title>CloudLife - Personal Life Management</title>
 
-    <link rel="stylesheet"
-          href="style.css">
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
 
 </head>
 
 
 <body>
 
+<!-- =====================================================
+     NAVIGATION
+===================================================== -->
 
-<!-- SIDEBAR -->
-
-<aside class="sidebar">
+<header class="navbar">
 
     <div class="logo">
-
-        ☁️
-
-        <span>CloudLife</span>
-
+        ☁️ CloudLife
     </div>
 
+    <nav>
 
-    <p class="menu-title">
-        MAIN MENU
-    </p>
+        <a href="#dashboard">
+            Dashboard
+        </a>
 
+        <a href="#tasks">
+            Tasks
+        </a>
 
-    <button onclick="showSection('dashboard')"
-            class="menu-btn active">
+        <a href="#expenses">
+            Expenses
+        </a>
 
-        📊 Dashboard
+        <a href="#notes">
+            Notes
+        </a>
 
-    </button>
+        <a href="#events">
+            Events
+        </a>
 
+        <button
+            type="button"
+            onclick="cloudLifeLogout()"
+            class="logout-button"
+        >
+            Logout
+        </button>
 
-    <button onclick="showSection('tasks')"
-            class="menu-btn">
-
-        ✅ Tasks
-
-    </button>
-
-
-    <button onclick="showSection('expenses')"
-            class="menu-btn">
-
-        💰 Expenses
-
-    </button>
-
-
-    <button onclick="showSection('notes')"
-            class="menu-btn">
-
-        📝 Notes
-
-    </button>
-
-
-    <button onclick="showSection('events')"
-            class="menu-btn">
-
-        📅 Events
-
-    </button>
-
-
-    <div class="cloud-info">
-
-        ☁️
-
-        <strong>Cloud Connected</strong>
-
-        <span>Supabase Database</span>
-
-    </div>
-
-</aside>
-
-
-
-<!-- MAIN -->
-
-<main class="main">
-
-
-<header class="header">
-
-    <div>
-
-        <h1 id="welcome">
-            Good Evening 👋
-        </h1>
-
-        <p>
-            Manage your everyday life from one place.
-        </p>
-
-    </div>
-
-
-    <div class="date-box">
-
-        📅
-
-        <span id="date"></span>
-
-    </div>
+    </nav>
 
 </header>
 
 
+<!-- =====================================================
+     MAIN CONTAINER
+===================================================== -->
 
-<!-- ================= DASHBOARD ================= -->
-
-<section id="dashboard"
-         class="section">
-
-
-    <div class="stats-grid">
+<main class="container">
 
 
-        <div class="stat-card">
+    <!-- =================================================
+         DASHBOARD
+    ================================================== -->
 
-            <div class="stat-icon">
-                ✅
-            </div>
+    <section
+        id="dashboard"
+        class="dashboard-section"
+    >
 
-            <div>
-
-                <p>Total Tasks</p>
-
-                <h2 id="taskCount">
-                    0
-                </h2>
-
-            </div>
-
-        </div>
-
-
-
-        <div class="stat-card">
-
-            <div class="stat-icon">
-                🎯
-            </div>
+        <div class="welcome-section">
 
             <div>
 
-                <p>Completed</p>
+                <p class="small-title">
+                    CLOUDLIFE DASHBOARD
+                </p>
 
-                <h2 id="completedCount">
-                    0
-                </h2>
+                <h1>
+                    Welcome to CloudLife 👋
+                </h1>
+
+                <p>
+                    Plan, track, organize and manage
+                    your personal life in the cloud.
+                </p>
 
             </div>
 
         </div>
 
 
+        <!-- =============================================
+             STATISTICS
+        ============================================== -->
 
-        <div class="stat-card">
+        <div class="stats-grid">
 
-            <div class="stat-icon">
-                💰
+
+            <!-- TOTAL TASKS -->
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    📋
+                </div>
+
+                <div>
+
+                    <p>
+                        Total Tasks
+                    </p>
+
+                    <h2 id="taskCount">
+                        0
+                    </h2>
+
+                </div>
+
             </div>
+
+
+            <!-- COMPLETED TASKS -->
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    ✅
+                </div>
+
+                <div>
+
+                    <p>
+                        Completed
+                    </p>
+
+                    <h2 id="completedCount">
+                        0
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <!-- EXPENSES -->
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    💰
+                </div>
+
+                <div>
+
+                    <p>
+                        Total Expenses
+                    </p>
+
+                    <h2 id="expenseTotal">
+                        ₹0.00
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <!-- NOTES -->
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    📝
+                </div>
+
+                <div>
+
+                    <p>
+                        Notes
+                    </p>
+
+                    <h2 id="noteCount">
+                        0
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =============================================
+             CLOUD STATUS
+        ============================================== -->
+
+        <div class="cloud-status">
 
             <div>
 
-                <p>Total Expenses</p>
-
-                <h2 id="expenseTotal">
-                    ₹0
-                </h2>
-
-            </div>
-
-        </div>
-
-
-
-        <div class="stat-card">
-
-            <div class="stat-icon">
-                📝
-            </div>
-
-            <div>
-
-                <p>Notes</p>
-
-                <h2 id="noteCount">
-                    0
-                </h2>
-
-            </div>
-
-        </div>
-
-
-    </div>
-
-
-
-    <div class="dashboard-grid">
-
-
-        <div class="panel">
-
-            <div class="panel-header">
-
-                <h2>
-                    ⚡ Quick Actions
-                </h2>
-
-            </div>
-
-
-            <div class="quick-actions">
-
-                <button onclick="showSection('tasks')">
-                    ➕ Add Task
-                </button>
-
-                <button onclick="showSection('expenses')">
-                    💰 Add Expense
-                </button>
-
-                <button onclick="showSection('notes')">
-                    📝 Add Note
-                </button>
-
-                <button onclick="showSection('events')">
-                    📅 Add Event
-                </button>
-
-            </div>
-
-        </div>
-
-
-
-        <div class="panel">
-
-            <div class="panel-header">
-
-                <h2>
+                <strong>
                     ☁️ Cloud Status
-                </h2>
+                </strong>
 
-                <span class="online">
-                    ● Online
+                <span>
+                    ONLINE
                 </span>
 
             </div>
 
+            <div>
 
-            <div class="cloud-status">
+                <strong>
+                    Database
+                </strong>
 
-                <div>
-                    <span>Database</span>
-                    <strong>Supabase PostgreSQL</strong>
-                </div>
+                <span>
+                    Supabase PostgreSQL
+                </span>
 
-                <div>
-                    <span>Backend</span>
-                    <strong>Node.js API</strong>
-                </div>
+            </div>
 
-                <div>
-                    <span>Storage</span>
-                    <strong>Cloud Database</strong>
-                </div>
+            <div>
+
+                <strong>
+                    Backend
+                </strong>
+
+                <span>
+                    Node.js + Express
+                </span>
+
+            </div>
+
+            <div>
+
+                <strong>
+                    Deployment
+                </strong>
+
+                <span>
+                    Render
+                </span>
 
             </div>
 
         </div>
 
 
-    </div>
+        <!-- =============================================
+             QUICK ACTIONS
+        ============================================== -->
 
+        <div class="section-header">
 
-</section>
+            <div>
 
+                <p class="small-title">
+                    QUICK ACTIONS
+                </p>
 
+                <h2>
+                    Manage Your Life
+                </h2>
 
-<!-- ================= TASKS ================= -->
-
-<section id="tasks"
-         class="section hidden">
-
-
-    <div class="page-title">
-
-        <h1>✅ Tasks</h1>
-
-        <p>
-            Organize your daily activities.
-        </p>
-
-    </div>
-
-
-
-    <div class="panel">
-
-        <h2>Add New Task</h2>
-
-
-        <div class="form-grid">
-
-
-            <input
-                id="taskTitle"
-                type="text"
-                placeholder="Task title">
-
-
-            <input
-                id="taskDescription"
-                type="text"
-                placeholder="Description">
-
-
-            <select id="taskPriority">
-
-                <option value="Low">
-                    Low Priority
-                </option>
-
-                <option value="Medium" selected>
-                    Medium Priority
-                </option>
-
-                <option value="High">
-                    High Priority
-                </option>
-
-            </select>
-
-
-            <input
-                id="taskDate"
-                type="date">
-
+            </div>
 
         </div>
 
 
-        <button class="primary-btn"
-                onclick="addTask()">
+        <div class="quick-actions">
 
-            ➕ Add Task
+            <a href="#tasks">
+                ➕ Add Task
+            </a>
 
-        </button>
+            <a href="#expenses">
+                💰 Add Expense
+            </a>
 
-    </div>
+            <a href="#notes">
+                📝 Add Note
+            </a>
+
+            <a href="#events">
+                📅 Add Event
+            </a>
+
+        </div>
+
+    </section>
 
 
 
-    <div class="panel">
+    <!-- =================================================
+         TASKS
+    ================================================== -->
 
-        <div class="panel-header">
+    <section
+        id="tasks"
+        class="module-section"
+    >
 
-            <h2>My Tasks</h2>
+        <div class="section-header">
+
+            <div>
+
+                <p class="small-title">
+                    TASK MANAGEMENT
+                </p>
+
+                <h2>
+                    My Tasks
+                </h2>
+
+            </div>
 
         </div>
 
 
-        <div id="taskList"
-             class="item-list">
+        <!-- ADD TASK FORM -->
+
+        <div class="form-card">
+
+            <h3>
+                Add New Task
+            </h3>
+
+
+            <form id="taskForm">
+
+                <div class="form-group">
+
+                    <label for="taskTitle">
+                        Task Title
+                    </label>
+
+                    <input
+                        type="text"
+                        id="taskTitle"
+                        placeholder="Enter task title"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="taskDescription">
+                        Description
+                    </label>
+
+                    <textarea
+                        id="taskDescription"
+                        placeholder="Enter description"
+                    ></textarea>
+
+                </div>
+
+
+                <div class="form-row">
+
+                    <div class="form-group">
+
+                        <label for="taskPriority">
+                            Priority
+                        </label>
+
+                        <select id="taskPriority">
+
+                            <option value="Low">
+                                Low
+                            </option>
+
+                            <option value="Medium" selected>
+                                Medium
+                            </option>
+
+                            <option value="High">
+                                High
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="taskDueDate">
+                            Due Date
+                        </label>
+
+                        <input
+                            type="date"
+                            id="taskDueDate"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="primary-button"
+                >
+                    Add Task
+                </button>
+
+            </form>
 
         </div>
 
-    </div>
 
+        <!-- TASK LIST -->
 
-</section>
+        <div class="list-card">
 
+            <div class="list-header">
 
+                <h3>
+                    Your Tasks
+                </h3>
 
-<!-- ================= EXPENSES ================= -->
+                <button
+                    onclick="loadTasks()"
+                    class="secondary-button"
+                >
+                    Refresh
+                </button>
 
-<section id="expenses"
-         class="section hidden">
+            </div>
 
+            <div id="taskList">
 
-    <div class="page-title">
+                <p class="empty-message">
+                    Loading tasks...
+                </p>
 
-        <h1>💰 Expenses</h1>
-
-        <p>
-            Keep track of your daily spending.
-        </p>
-
-    </div>
-
-
-
-    <div class="panel">
-
-        <h2>Add Expense</h2>
-
-
-        <div class="form-grid">
-
-
-            <input
-                id="expenseTitle"
-                type="text"
-                placeholder="Expense name">
-
-
-            <input
-                id="expenseAmount"
-                type="number"
-                placeholder="Amount ₹">
-
-
-            <select id="expenseCategory">
-
-                <option>Food</option>
-
-                <option>Travel</option>
-
-                <option>Shopping</option>
-
-                <option>Education</option>
-
-                <option>Entertainment</option>
-
-                <option>Other</option>
-
-            </select>
-
+            </div>
 
         </div>
 
+    </section>
 
-        <button class="primary-btn"
-                onclick="addExpense()">
 
-            ➕ Add Expense
 
-        </button>
+    <!-- =================================================
+         EXPENSES
+    ================================================== -->
 
-    </div>
+    <section
+        id="expenses"
+        class="module-section"
+    >
 
+        <div class="section-header">
 
+            <div>
 
-    <div class="panel">
+                <p class="small-title">
+                    EXPENSE TRACKING
+                </p>
 
-        <h2>Recent Expenses</h2>
+                <h2>
+                    My Expenses
+                </h2>
 
-        <div id="expenseList"
-             class="item-list">
-
-        </div>
-
-    </div>
-
-
-</section>
-
-
-
-<!-- ================= NOTES ================= -->
-
-<section id="notes"
-         class="section hidden">
-
-
-    <div class="page-title">
-
-        <h1>📝 Notes</h1>
-
-        <p>
-            Store important thoughts and information.
-        </p>
-
-    </div>
-
-
-
-    <div class="panel">
-
-        <h2>Create Note</h2>
-
-
-        <input
-            id="noteTitle"
-            type="text"
-            placeholder="Note title">
-
-
-        <textarea
-            id="noteContent"
-            placeholder="Write your note here..."></textarea>
-
-
-        <button class="primary-btn"
-                onclick="addNote()">
-
-            💾 Save Note
-
-        </button>
-
-    </div>
-
-
-
-    <div class="panel">
-
-        <h2>My Notes</h2>
-
-        <div id="noteList"
-             class="item-list">
-
-        </div>
-
-    </div>
-
-
-</section>
-
-
-
-<!-- ================= EVENTS ================= -->
-
-<section id="events"
-         class="section hidden">
-
-
-    <div class="page-title">
-
-        <h1>📅 Events</h1>
-
-        <p>
-            Never miss an important event.
-        </p>
-
-    </div>
-
-
-
-    <div class="panel">
-
-        <h2>Add Event</h2>
-
-
-        <div class="form-grid">
-
-
-            <input
-                id="eventTitle"
-                type="text"
-                placeholder="Event title">
-
-
-            <input
-                id="eventDate"
-                type="date">
-
-
-            <input
-                id="eventTime"
-                type="time">
-
-
-            <input
-                id="eventDescription"
-                type="text"
-                placeholder="Description">
-
+            </div>
 
         </div>
 
 
-        <button class="primary-btn"
-                onclick="addEvent()">
+        <!-- ADD EXPENSE -->
 
-            📅 Add Event
+        <div class="form-card">
 
-        </button>
-
-    </div>
-
+            <h3>
+                Add New Expense
+            </h3>
 
 
-    <div class="panel">
+            <form id="expenseForm">
 
-        <h2>Upcoming Events</h2>
+                <div class="form-row">
 
-        <div id="eventList"
-             class="item-list">
+                    <div class="form-group">
+
+                        <label for="expenseTitle">
+                            Expense Title
+                        </label>
+
+                        <input
+                            type="text"
+                            id="expenseTitle"
+                            placeholder="Example: Lunch"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="expenseAmount">
+                            Amount
+                        </label>
+
+                        <input
+                            type="number"
+                            id="expenseAmount"
+                            placeholder="0.00"
+                            min="0"
+                            step="0.01"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="expenseCategory">
+                        Category
+                    </label>
+
+                    <select id="expenseCategory">
+
+                        <option value="Food">
+                            Food
+                        </option>
+
+                        <option value="Travel">
+                            Travel
+                        </option>
+
+                        <option value="Shopping">
+                            Shopping
+                        </option>
+
+                        <option value="Education">
+                            Education
+                        </option>
+
+                        <option value="Entertainment">
+                            Entertainment
+                        </option>
+
+                        <option value="Other">
+                            Other
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="primary-button"
+                >
+                    Add Expense
+                </button>
+
+            </form>
 
         </div>
 
-    </div>
+
+        <!-- EXPENSE LIST -->
+
+        <div class="list-card">
+
+            <div class="list-header">
+
+                <h3>
+                    Expense History
+                </h3>
+
+                <button
+                    onclick="loadExpenses()"
+                    class="secondary-button"
+                >
+                    Refresh
+                </button>
+
+            </div>
+
+            <div id="expenseList">
+
+                <p class="empty-message">
+                    Loading expenses...
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
 
 
-</section>
+
+    <!-- =================================================
+         NOTES
+    ================================================== -->
+
+    <section
+        id="notes"
+        class="module-section"
+    >
+
+        <div class="section-header">
+
+            <div>
+
+                <p class="small-title">
+                    PERSONAL NOTES
+                </p>
+
+                <h2>
+                    My Notes
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        <!-- ADD NOTE -->
+
+        <div class="form-card">
+
+            <h3>
+                Create New Note
+            </h3>
+
+
+            <form id="noteForm">
+
+                <div class="form-group">
+
+                    <label for="noteTitle">
+                        Note Title
+                    </label>
+
+                    <input
+                        type="text"
+                        id="noteTitle"
+                        placeholder="Enter note title"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="noteContent">
+                        Content
+                    </label>
+
+                    <textarea
+                        id="noteContent"
+                        rows="5"
+                        placeholder="Write your note..."
+                        required
+                    ></textarea>
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="primary-button"
+                >
+                    Save Note
+                </button>
+
+            </form>
+
+        </div>
+
+
+        <!-- NOTES LIST -->
+
+        <div class="list-card">
+
+            <div class="list-header">
+
+                <h3>
+                    Saved Notes
+                </h3>
+
+                <button
+                    onclick="loadNotes()"
+                    class="secondary-button"
+                >
+                    Refresh
+                </button>
+
+            </div>
+
+            <div id="noteList">
+
+                <p class="empty-message">
+                    Loading notes...
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         EVENTS
+    ================================================== -->
+
+    <section
+        id="events"
+        class="module-section"
+    >
+
+        <div class="section-header">
+
+            <div>
+
+                <p class="small-title">
+                    EVENT MANAGEMENT
+                </p>
+
+                <h2>
+                    My Events
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        <!-- ADD EVENT -->
+
+        <div class="form-card">
+
+            <h3>
+                Create New Event
+            </h3>
+
+
+            <form id="eventForm">
+
+                <div class="form-group">
+
+                    <label for="eventTitle">
+                        Event Title
+                    </label>
+
+                    <input
+                        type="text"
+                        id="eventTitle"
+                        placeholder="Example: Project Presentation"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-row">
+
+                    <div class="form-group">
+
+                        <label for="eventDate">
+                            Date
+                        </label>
+
+                        <input
+                            type="date"
+                            id="eventDate"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="eventTime">
+                            Time
+                        </label>
+
+                        <input
+                            type="time"
+                            id="eventTime"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="eventDescription">
+                        Description
+                    </label>
+
+                    <textarea
+                        id="eventDescription"
+                        placeholder="Enter event details"
+                    ></textarea>
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="primary-button"
+                >
+                    Add Event
+                </button>
+
+            </form>
+
+        </div>
+
+
+        <!-- EVENTS LIST -->
+
+        <div class="list-card">
+
+            <div class="list-header">
+
+                <h3>
+                    Upcoming Events
+                </h3>
+
+                <button
+                    onclick="loadEvents()"
+                    class="secondary-button"
+                >
+                    Refresh
+                </button>
+
+            </div>
+
+            <div id="eventList">
+
+                <p class="empty-message">
+                    Loading events...
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         CLOUD INFORMATION
+    ================================================== -->
+
+    <section class="cloud-info">
+
+        <div>
+
+            <div class="cloud-icon">
+                ☁️
+            </div>
+
+            <div>
+
+                <h2>
+                    CloudLife
+                </h2>
+
+                <p>
+                    Your personal life, organized in the cloud.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="technology-list">
+
+            <span>
+                Node.js
+            </span>
+
+            <span>
+                Express
+            </span>
+
+            <span>
+                Supabase
+            </span>
+
+            <span>
+                PostgreSQL
+            </span>
+
+            <span>
+                Render
+            </span>
+
+        </div>
+
+    </section>
 
 
 </main>
 
 
+<!-- =====================================================
+     FOOTER
+===================================================== -->
+
+<footer>
+
+    <p>
+        © 2026 CloudLife
+        • Cloud-Based Personal Life Management System
+    </p>
+
+    <p>
+        Built with Node.js • Express • Supabase • Render
+    </p>
+
+</footer>
+
+
+<!-- =====================================================
+     AUTHENTICATION
+     
+     IMPORTANT:
+     auth.js MUST load before script.js
+===================================================== -->
+
+<script src="auth.js"></script>
+
 <script src="script.js"></script>
+
 
 </body>
 
