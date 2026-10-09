@@ -512,6 +512,7 @@ app.put(
                         "Status is required"
 
                 });
+                
 
             }
 
@@ -580,7 +581,37 @@ app.put(
 
     }
 );
+// COMPATIBILITY ROUTE: COMPLETE TASK
+app.put("/api/tasks/:id", async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from("tasks")
+            .update({ status: "Completed" })
+            .eq("id", req.params.id)
+            .select()
+            .single();
 
+        if (error) {
+            console.error("Complete task error:", error);
+            return res.status(500).json({
+                success: false,
+                error: error.message
+            });
+        }
+
+        return res.json({
+            success: true,
+            message: "Task completed successfully",
+            data
+        });
+    } catch (error) {
+        console.error("Complete task error:", error);
+        return res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
 
 // DELETE TASK
 
