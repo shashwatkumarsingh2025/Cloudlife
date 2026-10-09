@@ -19,7 +19,9 @@ async function readApiArray(response) {
 // PAGE INITIALIZATION
 // ========================================
 
+
 document.addEventListener("DOMContentLoaded", () => {
+    // Load existing dashboard data
     updateDate();
     loadStats();
     loadTasks();
@@ -27,20 +29,45 @@ document.addEventListener("DOMContentLoaded", () => {
     loadNotes();
     loadEvents();
 
-    // Connect the Add Task form
+    // Add Task form
     const taskForm = document.getElementById("taskForm");
-
     if (taskForm) {
         taskForm.addEventListener("submit", async (event) => {
             event.preventDefault();
             await addTask();
         });
-    } else {
-        console.error(
-            "Task form not found. Check the form ID in index.html."
-        );
     }
+
+    // Add Expense form
+    const expenseForm = document.getElementById("expenseForm");
+    if (expenseForm) {
+        expenseForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            await addExpense();
+        });
+    }
+
+    // Add Note form
+    const noteForm = document.getElementById("noteForm");
+    if (noteForm) {
+        noteForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            await addNote();
+        });
+    }
+
+    // Add Event form
+    const eventForm = document.getElementById("eventForm");
+    if (eventForm) {
+        eventForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            await addEvent();
+        });
+    }
+
+    console.log("CloudLife forms connected successfully.");
 });
+
 
 
 
