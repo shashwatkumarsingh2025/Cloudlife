@@ -255,7 +255,9 @@ async function addTask() {
             })
         });
 
+        console.log("Add task HTTP status:", response.status);
         const result = await response.json().catch(() => ({}));
+        console.log("Add task response:", result);
 
         if (!response.ok || result.success === false) {
             throw new Error(
