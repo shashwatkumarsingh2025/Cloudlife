@@ -1,6 +1,18 @@
-// ========================================
-// CLOUDLIFE - FRONTEND SCRIPT
-// ========================================
+
+ // Normalize API responses: supports both [] and { success: true, data: [] }.
+function extractArray(payload) {
+    if (Array.isArray(payload)) return payload;
+    if (payload && Array.isArray(payload.data)) return payload.data;
+    return [];
+}
+
+async function readApiArray(response) {
+    const payload = await response.json();
+    if (!response.ok) {
+        throw new Error(payload.error || `Request failed (${response.status})`);
+    }
+    return extractArray(payload);
+}
 
 
 // ========================================
@@ -8,19 +20,12 @@
 // ========================================
 
 document.addEventListener("DOMContentLoaded", () => {
-
     updateDate();
-
     loadStats();
-
     loadTasks();
-
     loadExpenses();
-
     loadNotes();
-
     loadEvents();
-
 });
 
 
@@ -29,24 +34,17 @@ document.addEventListener("DOMContentLoaded", () => {
 // ========================================
 
 function updateDate() {
-
-    const dateElement =
-        document.getElementById("date");
-
-    if (!dateElement) {
-        return;
-    }
+    const dateElement = document.getElementById("date");
+    if (!dateElement) return;
 
     const today = new Date();
 
-    dateElement.textContent =
-        today.toLocaleDateString("en-IN", {
-            weekday: "long",
-            day: "numeric",
-            month: "long",
-            year: "numeric"
-        });
-
+    dateElement.textContent = today.toLocaleDateString("en-IN", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+    });
 }
 
 
@@ -55,89 +53,16 @@ function updateDate() {
 // ========================================
 
 function showSection(sectionName) {
-
-    const sections =
-        document.querySelectorAll(".section");
-
-    sections.forEach(section => {
-
+    document.querySelectorAll(".section").forEach(section => {
         section.classList.add("hidden");
-
     });
 
+    const selectedSection = document.getElementById(sectionName);
+    if (selectedSection) selectedSection.classList.remove("hidden");
 
-    const selectedSection =
-        document.getElementById(sectionName);
-
-    if (selectedSection) {
-
-        selectedSection.classList.remove("hidden");
-
-    }
-
-
-    const buttons =
-        document.querySelectorAll(".menu-btn");
-
-    buttons.forEach(button => {
-
+    document.querySelectorAll(".menu-btn").forEach(button => {
         button.classList.remove("active");
-
     });
-
-}
-
-
-// ========================================
-// API HELPER
-// ========================================
-// Backend returns:
-// {
-//     success: true,
-//     data: [...]
-// }
-//
-// This function extracts the actual array.
-// ========================================
-
-async function getAPIData(url) {
-
-    const response =
-        await fetch(url);
-
-    const result =
-        await response.json();
-
-    if (!response.ok) {
-
-        throw new Error(
-            result.error ||
-            `Request failed with status ${response.status}`
-        );
-
-    }
-
-
-    // If backend directly returns an array
-    if (Array.isArray(result)) {
-
-        return result;
-
-    }
-
-
-    // Current backend format:
-    // { success: true, data: [...] }
-
-    if (Array.isArray(result.data)) {
-
-        return result.data;
-
-    }
-
-
-    return [];
-
 }
 
 
@@ -146,140 +71,60 @@ async function getAPIData(url) {
 // ========================================
 
 async function loadStats() {
-
     try {
+        const [tasksResponse, expensesResponse, notesResponse] =
+            await Promise.all([
+                fetch("/api/tasks"),
+                fetch("/api/expenses"),
+                fetch("/api/notes")
+            ]);
 
-        // Fetch actual records from backend
-
-        const [
-            tasks,
-            expenses,
-            notes
-        ] = await Promise.all([
-
-            getAPIData("/api/tasks"),
-
-            getAPIData("/api/expenses"),
-
-            getAPIData("/api/notes")
-
-        ]);
-
-
-        // ========================================
-        // TOTAL TASKS
-        // ========================================
-
-        const totalTasks =
-            tasks.length;
-
-
-        const taskCount =
-            document.getElementById("taskCount");
-
-        if (taskCount) {
-
-            taskCount.textContent =
-                totalTasks;
-
+        if (!tasksResponse.ok ||
+            !expensesResponse.ok ||
+            !notesResponse.ok) {
+            throw new Error("Unable to load dashboard data.");
         }
 
+        const [tasksPayload, expensesPayload, notesPayload] =
+            await Promise.all([
+                tasksResponse.json(),
+                expensesResponse.json(),
+                notesResponse.json()
+            ]);
 
-        // ========================================
-        // COMPLETED TASKS
-        // ========================================
+        const tasks = extractArray(tasksPayload);
+        const expenses = extractArray(expensesPayload);
+        const notes = extractArray(notesPayload);
 
-        const completedTasks =
-            tasks.filter(task => {
+        const taskCount = document.getElementById("taskCount");
+        const completedCount = document.getElementById("completedCount");
+        const expenseTotal = document.getElementById("expenseTotal");
+        const noteCount = document.getElementById("noteCount");
 
-                return String(task.status || "")
-                    .toLowerCase() === "completed";
+        if (taskCount) taskCount.textContent = tasks.length;
 
-            }).length;
-
-
-        const completedCount =
-            document.getElementById("completedCount");
+        const completedTasks = tasks.filter(task =>
+            String(task.status || "").toLowerCase() === "completed"
+        ).length;
 
         if (completedCount) {
-
-            completedCount.textContent =
-                completedTasks;
-
+            completedCount.textContent = completedTasks;
         }
 
-
-        // ========================================
-        // TOTAL EXPENSES
-        // ========================================
-
-        const totalExpenses =
-            expenses.reduce(
-                (total, expense) => {
-
-                    const amount =
-                        Number(expense.amount);
-
-                    if (Number.isFinite(amount)) {
-
-                        return total + amount;
-
-                    }
-
-                    return total;
-
-                },
-                0
-            );
-
-
-        const expenseTotal =
-            document.getElementById("expenseTotal");
+        const totalExpenses = expenses.reduce((total, expense) => {
+            const amount = Number(expense.amount);
+            return total + (Number.isFinite(amount) ? amount : 0);
+        }, 0);
 
         if (expenseTotal) {
-
-            expenseTotal.textContent =
-                "₹" +
-                totalExpenses.toFixed(2);
-
+            expenseTotal.textContent = "₹" + totalExpenses.toFixed(2);
         }
 
-
-        // ========================================
-        // TOTAL NOTES
-        // ========================================
-
-        const noteCount =
-            document.getElementById("noteCount");
-
-        if (noteCount) {
-
-            noteCount.textContent =
-                notes.length;
-
-        }
-
-
-        console.log(
-            "CloudLife Dashboard Updated:",
-            {
-                tasks: totalTasks,
-                completed: completedTasks,
-                expenses: totalExpenses,
-                notes: notes.length
-            }
-        );
-
+        if (noteCount) noteCount.textContent = notes.length;
 
     } catch (error) {
-
-        console.error(
-            "Dashboard statistics error:",
-            error
-        );
-
+        console.error("Stats error:", error);
     }
-
 }
 
 
@@ -288,161 +133,71 @@ async function loadStats() {
 // ========================================
 
 async function loadTasks() {
-
     try {
+        const response = await fetch("/api/tasks");
+        const tasks = await readApiArray(response);
 
-        const tasks =
-            await getAPIData("/api/tasks");
-
-
-        const container =
-            document.getElementById("taskList");
-
-
-        if (!container) {
-
-            return;
-
-        }
-
-
-        // No tasks
+        const container = document.getElementById("taskList");
+        if (!container) return;
 
         if (!tasks.length) {
-
-            container.innerHTML =
-                `
+            container.innerHTML = `
                 <div class="empty">
                     No tasks yet. Add your first task!
-                </div>
-                `;
-
+                </div>`;
             return;
-
         }
-
 
         container.innerHTML = "";
 
-
         tasks.forEach(task => {
+            const item = document.createElement("div");
+            item.className = "item";
 
-            const item =
-                document.createElement("div");
+            const priority = task.priority
+                ? String(task.priority).toLowerCase()
+                : "medium";
 
-            item.className =
-                "item";
+            const status = String(task.status || "Pending");
 
-
-            const priority =
-                task.priority
-                    ? String(task.priority).toLowerCase()
-                    : "medium";
-
-
-            const status =
-                task.status || "Pending";
-
-
-            item.innerHTML =
-                `
-
+            item.innerHTML = `
                 <div>
-
-                    <h3>
-                        ${escapeHTML(task.title)}
-                    </h3>
-
+                    <h3>${escapeHTML(task.title)}</h3>
+                    <p>${escapeHTML(task.description || "")}</p>
                     <p>
-                        ${escapeHTML(
-                            task.description || ""
-                        )}
-                    </p>
-
-                    <p>
-
                         Priority:
-
-                        <span class="badge ${priority}">
-                            ${escapeHTML(
-                                task.priority || "Medium"
-                            )}
+                        <span class="badge ${escapeHTML(priority)}">
+                            ${escapeHTML(task.priority || "Medium")}
                         </span>
-
                     </p>
-
-                    <p>
-                        Status:
-                        ${escapeHTML(status)}
-                    </p>
-
-                    ${
-                        task.due_date
-                        ?
-                        `
-                        <p>
-                            📅 Due:
-                            ${escapeHTML(task.due_date)}
-                        </p>
-                        `
-                        :
-                        ""
-                    }
-
+                    <p>Status: ${escapeHTML(status)}</p>
                 </div>
 
-
                 <div class="item-actions">
-
                     ${
-                        String(status).toLowerCase()
-                        !== "completed"
-
-                        ?
-
-                        `
-                        <button
-                            class="complete-btn"
-                            onclick="completeTask(${task.id})">
-
-                            ✓
-
-                        </button>
-                        `
-
-                        :
-
-                        ""
+                        status.toLowerCase() !== "completed"
+                            ? `<button
+                                class="complete-btn"
+                                onclick="completeTask('${String(task.id).replace(/'/g, "\\'")}')">
+                                ✓
+                            </button>`
+                            : ""
                     }
-
 
                     <button
                         class="delete-btn"
-                        onclick="deleteTask(${task.id})">
-
+                        onclick="deleteTask('${String(task.id).replace(/'/g, "\\'")}')">
                         🗑
-
                     </button>
-
                 </div>
-
-                `;
-
+            `;
 
             container.appendChild(item);
-
         });
 
-
     } catch (error) {
-
-        console.error(
-            "Task loading error:",
-            error
-        );
-
+        console.error("Task loading error:", error);
     }
-
 }
 
 
@@ -451,128 +206,61 @@ async function loadTasks() {
 // ========================================
 
 async function addTask() {
+    const titleElement = document.getElementById("taskTitle");
+    const descriptionElement = document.getElementById("taskDescription");
+    const priorityElement = document.getElementById("taskPriority");
+    const dateElement = document.getElementById("taskDate");
 
-    const title =
-        document
-            .getElementById("taskTitle")
-            .value
-            .trim();
+    if (!titleElement || !descriptionElement || !priorityElement) {
+        alert("Task form fields could not be found.");
+        return;
+    }
 
-
-    const description =
-        document
-            .getElementById("taskDescription")
-            .value
-            .trim();
-
-
-    const priority =
-        document
-            .getElementById("taskPriority")
-            .value;
-
-
-    const due_date =
-        document
-            .getElementById("taskDate")
-            .value;
-
+    const title = titleElement.value.trim();
+    const description = descriptionElement.value.trim();
+    const priority = priorityElement.value;
+    const due_date = dateElement ? dateElement.value || null : null;
 
     if (!title) {
-
-        alert(
-            "Please enter a task title."
-        );
-
+        alert("Please enter a task title.");
         return;
-
     }
-
 
     try {
+        const response = await fetch("/api/tasks", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                title,
+                description,
+                priority,
+                due_date
+            })
+        });
 
-        const response =
-            await fetch(
-                "/api/tasks",
-                {
+        const result = await response.json().catch(() => ({}));
 
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body: JSON.stringify({
-
-                        title,
-
-                        description,
-
-                        priority,
-
-                        due_date
-
-                    })
-
-                }
+        if (!response.ok || result.success === false) {
+            throw new Error(
+                result.error || `Unable to save task (${response.status})`
             );
-
-
-        const result =
-            await response.json();
-
-
-        if (!response.ok) {
-
-            alert(
-                result.error ||
-                "Failed to add task."
-            );
-
-            return;
-
         }
 
+        alert("Task added successfully!");
 
-        alert(
-            "Task added successfully!"
-        );
-
-
-        document
-            .getElementById("taskTitle")
-            .value = "";
-
-
-        document
-            .getElementById("taskDescription")
-            .value = "";
-
-
-        document
-            .getElementById("taskDate")
-            .value = "";
-
+        titleElement.value = "";
+        descriptionElement.value = "";
+        if (dateElement) dateElement.value = "";
 
         await loadTasks();
-
         await loadStats();
 
-
     } catch (error) {
-
-        console.error(
-            "Add task error:",
-            error
-        );
-
-        alert(
-            "Unable to add task."
-        );
-
+        console.error("Add task error:", error);
+        alert(error.message || "Unable to add task.");
     }
-
 }
 
 
@@ -581,62 +269,35 @@ async function addTask() {
 // ========================================
 
 async function completeTask(id) {
-
     try {
+        const response = await fetch(
+            `/api/tasks/${encodeURIComponent(id)}`,
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    status: "Completed"
+                })
+            }
+        );
 
-        const response =
-            await fetch(
-                `/api/tasks/${id}`,
-                {
+        const result = await response.json().catch(() => ({}));
 
-                    method: "PUT",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body: JSON.stringify({
-
-                        status: "Completed"
-
-                    })
-
-                }
-            );
-
-
-        if (!response.ok) {
-
-            const result =
-                await response.json();
-
+        if (!response.ok || result.success === false) {
             throw new Error(
-                result.error ||
-                "Failed to complete task."
+                result.error || `Could not complete task (${response.status})`
             );
-
         }
 
-
         await loadTasks();
-
         await loadStats();
 
-
     } catch (error) {
-
-        console.error(
-            "Complete task error:",
-            error
-        );
-
-        alert(
-            "Unable to complete task."
-        );
-
+        console.error("Complete task error:", error);
+        alert(error.message || "Unable to complete task.");
     }
-
 }
 
 
@@ -645,56 +306,31 @@ async function completeTask(id) {
 // ========================================
 
 async function deleteTask(id) {
-
-    if (
-        !confirm(
-            "Delete this task?"
-        )
-    ) {
-
-        return;
-
-    }
-
+    if (!confirm("Delete this task?")) return;
 
     try {
+        const response = await fetch(
+            `/api/tasks/${encodeURIComponent(id)}`,
+            {
+                method: "DELETE"
+            }
+        );
 
-        const response =
-            await fetch(
-                `/api/tasks/${id}`,
-                {
-                    method: "DELETE"
-                }
-            );
+        const result = await response.json().catch(() => ({}));
 
-
-        if (!response.ok) {
-
+        if (!response.ok || result.success === false) {
             throw new Error(
-                "Failed to delete task."
+                result.error || `Could not delete task (${response.status})`
             );
-
         }
 
-
         await loadTasks();
-
         await loadStats();
 
-
     } catch (error) {
-
-        console.error(
-            "Delete task error:",
-            error
-        );
-
-        alert(
-            "Unable to delete task."
-        );
-
+        console.error("Delete task error:", error);
+        alert(error.message || "Unable to delete task.");
     }
-
 }
 
 
@@ -703,128 +339,49 @@ async function deleteTask(id) {
 // ========================================
 
 async function loadExpenses() {
-
     try {
+        const response = await fetch("/api/expenses");
+        const expenses = await readApiArray(response);
 
-        const expenses =
-            await getAPIData(
-                "/api/expenses"
-            );
-
-
-        const container =
-            document.getElementById(
-                "expenseList"
-            );
-
-
-        if (!container) {
-
-            return;
-
-        }
-
+        const container = document.getElementById("expenseList");
+        if (!container) return;
 
         if (!expenses.length) {
-
-            container.innerHTML =
-                `
+            container.innerHTML = `
                 <div class="empty">
                     No expenses recorded.
-                </div>
-                `;
-
+                </div>`;
             return;
-
         }
-
 
         container.innerHTML = "";
 
-
         expenses.forEach(expense => {
+            const item = document.createElement("div");
+            item.className = "item";
 
-            const item =
-                document.createElement(
-                    "div"
-                );
-
-
-            item.className =
-                "item";
-
-
-            const amount =
-                Number(expense.amount);
-
-
-            const formattedAmount =
-                Number.isFinite(amount)
-                    ? amount.toFixed(2)
-                    : "0.00";
-
-
-            item.innerHTML =
-                `
-
+            item.innerHTML = `
                 <div>
-
-                    <h3>
-                        ${escapeHTML(
-                            expense.title
-                        )}
-                    </h3>
-
-                    <p>
-
-                        Category:
-
-                        ${escapeHTML(
-                            expense.category ||
-                            "General"
-                        )}
-
-                    </p>
-
+                    <h3>${escapeHTML(expense.title)}</h3>
+                    <p>Category: ${escapeHTML(expense.category || "")}</p>
                 </div>
 
-
                 <div>
-
-                    <strong>
-
-                        ₹${formattedAmount}
-
-                    </strong>
-
-
+                    <strong>₹${Number(expense.amount || 0).toFixed(2)}</strong>
                     <button
                         class="delete-btn"
-                        onclick="deleteExpense(${expense.id})">
-
+                        onclick="deleteExpense('${String(expense.id).replace(/'/g, "\\'")}')">
                         🗑
-
                     </button>
-
                 </div>
-
-                `;
-
+            `;
 
             container.appendChild(item);
-
         });
 
-
     } catch (error) {
-
-        console.error(
-            "Expense loading error:",
-            error
-        );
-
+        console.error("Expense loading error:", error);
     }
-
 }
 
 
@@ -833,132 +390,57 @@ async function loadExpenses() {
 // ========================================
 
 async function addExpense() {
+    const titleElement = document.getElementById("expenseTitle");
+    const amountElement = document.getElementById("expenseAmount");
+    const categoryElement = document.getElementById("expenseCategory");
 
-    const title =
-        document
-            .getElementById("expenseTitle")
-            .value
-            .trim();
+    if (!titleElement || !amountElement || !categoryElement) {
+        alert("Expense form fields could not be found.");
+        return;
+    }
 
-
-    const amount =
-        document
-            .getElementById("expenseAmount")
-            .value;
-
-
-    const category =
-        document
-            .getElementById("expenseCategory")
-            .value;
-
+    const title = titleElement.value.trim();
+    const amount = amountElement.value;
+    const category = categoryElement.value;
 
     if (!title || !amount) {
-
-        alert(
-            "Enter expense name and amount."
-        );
-
+        alert("Enter expense name and amount.");
         return;
-
     }
-
-
-    const numericAmount =
-        Number(amount);
-
-
-    if (
-        !Number.isFinite(numericAmount) ||
-        numericAmount <= 0
-    ) {
-
-        alert(
-            "Enter a valid expense amount."
-        );
-
-        return;
-
-    }
-
 
     try {
+        const response = await fetch("/api/expenses", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                title,
+                amount,
+                category
+            })
+        });
 
-        const response =
-            await fetch(
-                "/api/expenses",
-                {
+        const result = await response.json().catch(() => ({}));
 
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body: JSON.stringify({
-
-                        title,
-
-                        amount: numericAmount,
-
-                        category
-
-                    })
-
-                }
+        if (!response.ok || result.success === false) {
+            throw new Error(
+                result.error || `Unable to add expense (${response.status})`
             );
-
-
-        const result =
-            await response.json();
-
-
-        if (!response.ok) {
-
-            alert(
-                result.error ||
-                "Failed to add expense."
-            );
-
-            return;
-
         }
 
+        alert("Expense added!");
 
-        alert(
-            "Expense added!"
-        );
-
-
-        document
-            .getElementById("expenseTitle")
-            .value = "";
-
-
-        document
-            .getElementById("expenseAmount")
-            .value = "";
-
+        titleElement.value = "";
+        amountElement.value = "";
 
         await loadExpenses();
-
         await loadStats();
 
-
     } catch (error) {
-
-        console.error(
-            "Add expense error:",
-            error
-        );
-
-        alert(
-            "Unable to add expense."
-        );
-
+        console.error("Add expense error:", error);
+        alert(error.message || "Unable to add expense.");
     }
-
 }
 
 
@@ -967,56 +449,31 @@ async function addExpense() {
 // ========================================
 
 async function deleteExpense(id) {
-
-    if (
-        !confirm(
-            "Delete this expense?"
-        )
-    ) {
-
-        return;
-
-    }
-
+    if (!confirm("Delete this expense?")) return;
 
     try {
+        const response = await fetch(
+            `/api/expenses/${encodeURIComponent(id)}`,
+            {
+                method: "DELETE"
+            }
+        );
 
-        const response =
-            await fetch(
-                `/api/expenses/${id}`,
-                {
-                    method: "DELETE"
-                }
-            );
+        const result = await response.json().catch(() => ({}));
 
-
-        if (!response.ok) {
-
+        if (!response.ok || result.success === false) {
             throw new Error(
-                "Failed to delete expense."
+                result.error || `Could not delete expense (${response.status})`
             );
-
         }
 
-
         await loadExpenses();
-
         await loadStats();
 
-
     } catch (error) {
-
-        console.error(
-            "Delete expense error:",
-            error
-        );
-
-        alert(
-            "Unable to delete expense."
-        );
-
+        console.error("Delete expense error:", error);
+        alert(error.message || "Unable to delete expense.");
     }
-
 }
 
 
@@ -1025,102 +482,46 @@ async function deleteExpense(id) {
 // ========================================
 
 async function loadNotes() {
-
     try {
+        const response = await fetch("/api/notes");
+        const notes = await readApiArray(response);
 
-        const notes =
-            await getAPIData(
-                "/api/notes"
-            );
-
-
-        const container =
-            document.getElementById(
-                "noteList"
-            );
-
-
-        if (!container) {
-
-            return;
-
-        }
-
+        const container = document.getElementById("noteList");
+        if (!container) return;
 
         if (!notes.length) {
-
-            container.innerHTML =
-                `
+            container.innerHTML = `
                 <div class="empty">
                     No notes saved.
-                </div>
-                `;
-
+                </div>`;
             return;
-
         }
-
 
         container.innerHTML = "";
 
-
         notes.forEach(note => {
+            const item = document.createElement("div");
+            item.className = "item";
 
-            const item =
-                document.createElement(
-                    "div"
-                );
-
-
-            item.className =
-                "item";
-
-
-            item.innerHTML =
-                `
-
+            item.innerHTML = `
                 <div>
-
-                    <h3>
-                        ${escapeHTML(
-                            note.title
-                        )}
-                    </h3>
-
-                    <p>
-                        ${escapeHTML(
-                            note.content || ""
-                        )}
-                    </p>
-
+                    <h3>${escapeHTML(note.title)}</h3>
+                    <p>${escapeHTML(note.content || "")}</p>
                 </div>
-
 
                 <button
                     class="delete-btn"
-                    onclick="deleteNote(${note.id})">
-
+                    onclick="deleteNote('${String(note.id).replace(/'/g, "\\'")}')">
                     🗑
-
                 </button>
-
-                `;
-
+            `;
 
             container.appendChild(item);
-
         });
 
-
     } catch (error) {
-
-        console.error(
-            "Note loading error:",
-            error
-        );
-
+        console.error("Note loading error:", error);
     }
-
 }
 
 
@@ -1129,107 +530,54 @@ async function loadNotes() {
 // ========================================
 
 async function addNote() {
+    const titleElement = document.getElementById("noteTitle");
+    const contentElement = document.getElementById("noteContent");
 
-    const title =
-        document
-            .getElementById("noteTitle")
-            .value
-            .trim();
+    if (!titleElement || !contentElement) {
+        alert("Note form fields could not be found.");
+        return;
+    }
 
-
-    const content =
-        document
-            .getElementById("noteContent")
-            .value
-            .trim();
-
+    const title = titleElement.value.trim();
+    const content = contentElement.value.trim();
 
     if (!title) {
-
-        alert(
-            "Enter a note title."
-        );
-
+        alert("Enter a note title.");
         return;
-
     }
-
 
     try {
+        const response = await fetch("/api/notes", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                title,
+                content
+            })
+        });
 
-        const response =
-            await fetch(
-                "/api/notes",
-                {
+        const result = await response.json().catch(() => ({}));
 
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body: JSON.stringify({
-
-                        title,
-
-                        content
-
-                    })
-
-                }
+        if (!response.ok || result.success === false) {
+            throw new Error(
+                result.error || `Unable to save note (${response.status})`
             );
-
-
-        const result =
-            await response.json();
-
-
-        if (!response.ok) {
-
-            alert(
-                result.error ||
-                "Failed to save note."
-            );
-
-            return;
-
         }
 
+        alert("Note saved!");
 
-        alert(
-            "Note saved!"
-        );
-
-
-        document
-            .getElementById("noteTitle")
-            .value = "";
-
-
-        document
-            .getElementById("noteContent")
-            .value = "";
-
+        titleElement.value = "";
+        contentElement.value = "";
 
         await loadNotes();
-
         await loadStats();
 
-
     } catch (error) {
-
-        console.error(
-            "Add note error:",
-            error
-        );
-
-        alert(
-            "Unable to save note."
-        );
-
+        console.error("Add note error:", error);
+        alert(error.message || "Unable to save note.");
     }
-
 }
 
 
@@ -1238,56 +586,31 @@ async function addNote() {
 // ========================================
 
 async function deleteNote(id) {
-
-    if (
-        !confirm(
-            "Delete this note?"
-        )
-    ) {
-
-        return;
-
-    }
-
+    if (!confirm("Delete this note?")) return;
 
     try {
+        const response = await fetch(
+            `/api/notes/${encodeURIComponent(id)}`,
+            {
+                method: "DELETE"
+            }
+        );
 
-        const response =
-            await fetch(
-                `/api/notes/${id}`,
-                {
-                    method: "DELETE"
-                }
-            );
+        const result = await response.json().catch(() => ({}));
 
-
-        if (!response.ok) {
-
+        if (!response.ok || result.success === false) {
             throw new Error(
-                "Failed to delete note."
+                result.error || `Could not delete note (${response.status})`
             );
-
         }
 
-
         await loadNotes();
-
         await loadStats();
 
-
     } catch (error) {
-
-        console.error(
-            "Delete note error:",
-            error
-        );
-
-        alert(
-            "Unable to delete note."
-        );
-
+        console.error("Delete note error:", error);
+        alert(error.message || "Unable to delete note.");
     }
-
 }
 
 
@@ -1296,124 +619,48 @@ async function deleteNote(id) {
 // ========================================
 
 async function loadEvents() {
-
     try {
+        const response = await fetch("/api/events");
+        const events = await readApiArray(response);
 
-        const events =
-            await getAPIData(
-                "/api/events"
-            );
-
-
-        const container =
-            document.getElementById(
-                "eventList"
-            );
-
-
-        if (!container) {
-
-            return;
-
-        }
-
+        const container = document.getElementById("eventList");
+        if (!container) return;
 
         if (!events.length) {
-
-            container.innerHTML =
-                `
+            container.innerHTML = `
                 <div class="empty">
                     No upcoming events.
-                </div>
-                `;
-
+                </div>`;
             return;
-
         }
-
 
         container.innerHTML = "";
 
-
         events.forEach(event => {
+            const item = document.createElement("div");
+            item.className = "item";
 
-            const item =
-                document.createElement(
-                    "div"
-                );
-
-
-            item.className =
-                "item";
-
-
-            item.innerHTML =
-                `
-
+            item.innerHTML = `
                 <div>
-
-                    <h3>
-                        ${escapeHTML(
-                            event.title
-                        )}
-                    </h3>
-
-                    <p>
-
-                        📅
-                        ${escapeHTML(
-                            event.event_date || ""
-                        )}
-
-                    </p>
-
-                    <p>
-
-                        ⏰
-                        ${escapeHTML(
-                            event.event_time ||
-                            "No time"
-                        )}
-
-                    </p>
-
-                    <p>
-
-                        ${escapeHTML(
-                            event.description ||
-                            ""
-                        )}
-
-                    </p>
-
+                    <h3>${escapeHTML(event.title)}</h3>
+                    <p>📅 ${escapeHTML(event.event_date || "")}</p>
+                    <p>⏰ ${escapeHTML(event.event_time || "No time")}</p>
+                    <p>${escapeHTML(event.description || "")}</p>
                 </div>
-
 
                 <button
                     class="delete-btn"
-                    onclick="deleteEvent(${event.id})">
-
+                    onclick="deleteEvent('${String(event.id).replace(/'/g, "\\'")}')">
                     🗑
-
                 </button>
-
-                `;
-
+            `;
 
             container.appendChild(item);
-
         });
 
-
     } catch (error) {
-
-        console.error(
-            "Event loading error:",
-            error
-        );
-
+        console.error("Event loading error:", error);
     }
-
 }
 
 
@@ -1422,133 +669,64 @@ async function loadEvents() {
 // ========================================
 
 async function addEvent() {
+    const titleElement = document.getElementById("eventTitle");
+    const dateElement = document.getElementById("eventDate");
+    const timeElement = document.getElementById("eventTime");
+    const descriptionElement = document.getElementById("eventDescription");
 
-    const title =
-        document
-            .getElementById("eventTitle")
-            .value
-            .trim();
+    if (!titleElement || !dateElement) {
+        alert("Event form fields could not be found.");
+        return;
+    }
 
-
-    const event_date =
-        document
-            .getElementById("eventDate")
-            .value;
-
-
-    const event_time =
-        document
-            .getElementById("eventTime")
-            .value;
-
-
-    const description =
-        document
-            .getElementById("eventDescription")
-            .value
-            .trim();
-
+    const title = titleElement.value.trim();
+    const event_date = dateElement.value;
+    const event_time = timeElement ? timeElement.value : "";
+    const description = descriptionElement
+        ? descriptionElement.value.trim()
+        : "";
 
     if (!title || !event_date) {
-
-        alert(
-            "Enter event title and date."
-        );
-
+        alert("Enter event title and date.");
         return;
-
     }
-
 
     try {
+        const response = await fetch("/api/events", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                title,
+                event_date,
+                event_time,
+                description
+            })
+        });
 
-        const response =
-            await fetch(
-                "/api/events",
-                {
+        const result = await response.json().catch(() => ({}));
 
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body: JSON.stringify({
-
-                        title,
-
-                        event_date,
-
-                        event_time,
-
-                        description
-
-                    })
-
-                }
+        if (!response.ok || result.success === false) {
+            throw new Error(
+                result.error || `Unable to add event (${response.status})`
             );
-
-
-        const result =
-            await response.json();
-
-
-        if (!response.ok) {
-
-            alert(
-                result.error ||
-                "Failed to add event."
-            );
-
-            return;
-
         }
 
+        alert("Event added!");
 
-        alert(
-            "Event added!"
-        );
-
-
-        document
-            .getElementById("eventTitle")
-            .value = "";
-
-
-        document
-            .getElementById("eventDate")
-            .value = "";
-
-
-        document
-            .getElementById("eventTime")
-            .value = "";
-
-
-        document
-            .getElementById("eventDescription")
-            .value = "";
-
+        titleElement.value = "";
+        dateElement.value = "";
+        if (timeElement) timeElement.value = "";
+        if (descriptionElement) descriptionElement.value = "";
 
         await loadEvents();
-
         await loadStats();
 
-
     } catch (error) {
-
-        console.error(
-            "Add event error:",
-            error
-        );
-
-        alert(
-            "Unable to add event."
-        );
-
+        console.error("Add event error:", error);
+        alert(error.message || "Unable to add event.");
     }
-
 }
 
 
@@ -1557,76 +735,41 @@ async function addEvent() {
 // ========================================
 
 async function deleteEvent(id) {
-
-    if (
-        !confirm(
-            "Delete this event?"
-        )
-    ) {
-
-        return;
-
-    }
-
+    if (!confirm("Delete this event?")) return;
 
     try {
+        const response = await fetch(
+            `/api/events/${encodeURIComponent(id)}`,
+            {
+                method: "DELETE"
+            }
+        );
 
-        const response =
-            await fetch(
-                `/api/events/${id}`,
-                {
-                    method: "DELETE"
-                }
-            );
+        const result = await response.json().catch(() => ({}));
 
-
-        if (!response.ok) {
-
+        if (!response.ok || result.success === false) {
             throw new Error(
-                "Failed to delete event."
+                result.error || `Could not delete event (${response.status})`
             );
-
         }
 
-
         await loadEvents();
-
         await loadStats();
 
-
     } catch (error) {
-
-        console.error(
-            "Delete event error:",
-            error
-        );
-
-        alert(
-            "Unable to delete event."
-        );
-
+        console.error("Delete event error:", error);
+        alert(error.message || "Unable to delete event.");
     }
-
 }
 
 
 // ========================================
 // SECURITY
-// Prevent HTML injection
+// Prevent HTML injection when displaying data
 // ========================================
 
 function escapeHTML(value) {
-
-    const div =
-        document.createElement(
-            "div"
-        );
-
-
-    div.textContent =
-        value ?? "";
-
-
+    const div = document.createElement("div");
+    div.textContent = value ?? "";
     return div.innerHTML;
-
 }
