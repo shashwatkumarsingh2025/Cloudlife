@@ -26,7 +26,22 @@ document.addEventListener("DOMContentLoaded", () => {
     loadExpenses();
     loadNotes();
     loadEvents();
+
+    // Connect the Add Task form
+    const taskForm = document.getElementById("taskForm");
+
+    if (taskForm) {
+        taskForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            await addTask();
+        });
+    } else {
+        console.error(
+            "Task form not found. Check the form ID in index.html."
+        );
+    }
 });
+
 
 
 // ========================================
