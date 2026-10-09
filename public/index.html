@@ -1,18 +1,156 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>CloudLife Dashboard</title>
-
     <link rel="stylesheet" href="style.css">
+
+    <style>
+        /* CloudLife AI */
+        .ai-nav-link {
+            border: 1px solid rgba(139,168,220,.28);
+        }
+
+        .ai-chat-card {
+            margin: 28px 0;
+            padding: 26px;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 8px 28px rgba(20,35,60,.06);
+            scroll-margin-top: 20px;
+        }
+
+        .ai-chat-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .ai-chat-heading h2 {
+            margin: 0;
+            color: #12233f;
+        }
+
+        .ai-subtitle {
+            color: #64748b;
+            margin: 12px 0 18px;
+        }
+
+        .ai-status {
+            font-size: 13px;
+            color: #16834a;
+        }
+
+        .ai-suggestions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .ai-suggestions button {
+            padding: 9px 13px;
+            border: 1px solid #dbe3ef;
+            background: #f8fafc;
+            border-radius: 20px;
+            cursor: pointer;
+            color: #253b61;
+        }
+
+        .ai-messages {
+            height: 320px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            border-radius: 14px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .ai-message {
+            max-width: 85%;
+            padding: 12px 15px;
+            border-radius: 14px;
+            line-height: 1.55;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .ai-message.assistant {
+            align-self: flex-start;
+            background: #e9eff8;
+            color: #17243a;
+        }
+
+        .ai-message.user {
+            align-self: flex-end;
+            background: #253b61;
+            color: white;
+        }
+
+        .ai-composer {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .ai-composer input {
+            flex: 1;
+            min-width: 0;
+            padding: 13px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            font-size: 15px;
+        }
+
+        .ai-composer button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            background: #253b61;
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .ai-composer button:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 600px) {
+            .ai-chat-card {
+                padding: 16px;
+            }
+
+            .ai-messages {
+                height: 280px;
+            }
+
+            .ai-message {
+                max-width: 95%;
+            }
+
+            .ai-composer {
+                flex-direction: column;
+            }
+
+            .ai-composer button {
+                min-height: 44px;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-<!-- ================= SIDEBAR ================= -->
-
+<!-- SIDEBAR -->
 <aside class="sidebar">
 
     <div class="logo">
@@ -23,7 +161,6 @@
     <div class="sidebar-title">MAIN MENU</div>
 
     <nav>
-
         <a href="/" class="active">
             <span>📊</span>
             <span>Dashboard</span>
@@ -49,661 +186,464 @@
             <span>Events</span>
         </a>
 
+        <!-- NEW AI SIDEBAR LINK -->
+        <a href="#cloudlife-ai" class="ai-nav-link">
+            <span>🤖</span>
+            <span>CloudLife AI</span>
+        </a>
     </nav>
 
-    <button
-        class="logout-btn"
-        onclick="cloudLifeLogout()">
+    <button class="logout-btn" onclick="cloudLifeLogout()">
         Logout
     </button>
 
     <div class="sidebar-bottom">
-
         <div class="cloud-icon">☁️</div>
-
         <h4>Cloud Connected</h4>
-
         <p>Supabase Database</p>
-
     </div>
 
 </aside>
 
 
-<!-- ================= MAIN CONTENT ================= -->
-
+<!-- MAIN CONTENT -->
 <main class="main-content">
 
     <!-- HEADER -->
-
     <header class="dashboard-header">
-
         <div>
-
-            <h1>
-                Good Evening 👋
-            </h1>
-
-            <p>
-                Manage your everyday life from one place.
-            </p>
-
+            <h1>Good Evening 👋</h1>
+            <p>Manage your everyday life from one place.</p>
         </div>
 
         <div class="date-box">
             📅 <span id="currentDate"></span>
         </div>
-
     </header>
 
 
-    <!-- ================= STATISTICS ================= -->
-
+    <!-- STATISTICS -->
     <section class="stats-grid">
 
-        <!-- TASKS -->
-
         <div class="stat-card">
-
-            <div class="stat-icon">
-                ✅
-            </div>
-
+            <div class="stat-icon">✅</div>
             <div>
-
-                <div class="label">
-                    Total Tasks
-                </div>
-
-                <div
-                    class="value"
-                    id="taskCount">
-                    0
-                </div>
-
+                <div class="label">Total Tasks</div>
+                <div class="value" id="taskCount">0</div>
             </div>
-
         </div>
 
-
-        <!-- COMPLETED -->
-
         <div class="stat-card">
-
-            <div class="stat-icon">
-                🎯
-            </div>
-
+            <div class="stat-icon">🎯</div>
             <div>
-
-                <div class="label">
-                    Completed
-                </div>
-
-                <div
-                    class="value"
-                    id="completedCount">
-                    0
-                </div>
-
+                <div class="label">Completed</div>
+                <div class="value" id="completedCount">0</div>
             </div>
-
         </div>
 
-
-        <!-- EXPENSES -->
-
         <div class="stat-card">
-
-            <div class="stat-icon">
-                💰
-            </div>
-
+            <div class="stat-icon">💰</div>
             <div>
-
-                <div class="label">
-                    Total Expenses
-                </div>
-
-                <div
-                    class="value"
-                    id="expenseTotal">
-                    ₹0.00
-                </div>
-
+                <div class="label">Total Expenses</div>
+                <div class="value" id="expenseTotal">₹0.00</div>
             </div>
-
         </div>
 
-
-        <!-- NOTES -->
-
         <div class="stat-card">
-
-            <div class="stat-icon">
-                📝
-            </div>
-
+            <div class="stat-icon">📝</div>
             <div>
-
-                <div class="label">
-                    Notes
-                </div>
-
-                <div
-                    class="value"
-                    id="noteCount">
-                    0
-                </div>
-
+                <div class="label">Notes</div>
+                <div class="value" id="noteCount">0</div>
             </div>
-
         </div>
 
     </section>
 
 
-    <!-- ================= DASHBOARD GRID ================= -->
-
+    <!-- DASHBOARD GRID -->
     <section class="dashboard-grid">
 
-
-        <!-- ================= QUICK ACTIONS ================= -->
-
         <div class="card">
-
             <div class="card-title">
                 <span>⚡</span>
                 <span>Quick Actions</span>
             </div>
 
-
             <div class="quick-actions">
-
-                <a
-                    href="#tasks"
-                    class="quick-action">
-                    ➕ Add Task
-                </a>
-
-                <a
-                    href="#expenses"
-                    class="quick-action">
-                    💰 Add Expense
-                </a>
-
-                <a
-                    href="#notes"
-                    class="quick-action">
-                    📝 Add Note
-                </a>
-
-                <a
-                    href="#events"
-                    class="quick-action">
-                    🗓️ Add Event
-                </a>
-
+                <a href="#tasks" class="quick-action">➕ Add Task</a>
+                <a href="#expenses" class="quick-action">💰 Add Expense</a>
+                <a href="#notes" class="quick-action">📝 Add Note</a>
+                <a href="#events" class="quick-action">🗓️ Add Event</a>
             </div>
-
         </div>
 
-
-        <!-- ================= CLOUD STATUS ================= -->
-
         <div class="card">
-
             <div class="card-title cloud-status-header">
-
-                <span>
-                    ☁️ Cloud Status
-                </span>
-
-                <span class="online">
-                    ● Online
-                </span>
-
+                <span>☁️ Cloud Status</span>
+                <span class="online">● Online</span>
             </div>
-
 
             <div class="status-row">
-
-                <span class="status-label">
-                    Database
-                </span>
-
-                <span class="status-value">
-                    Supabase PostgreSQL
-                </span>
-
+                <span class="status-label">Database</span>
+                <span class="status-value">Supabase PostgreSQL</span>
             </div>
-
 
             <div class="status-row">
-
-                <span class="status-label">
-                    Backend
-                </span>
-
-                <span class="status-value">
-                    Node.js API
-                </span>
-
+                <span class="status-label">Backend</span>
+                <span class="status-value">Node.js API</span>
             </div>
-
 
             <div class="status-row">
-
-                <span class="status-label">
-                    Storage
-                </span>
-
-                <span class="status-value">
-                    Cloud Database
-                </span>
-
+                <span class="status-label">Storage</span>
+                <span class="status-value">Cloud Database</span>
             </div>
-
         </div>
 
     </section>
 
 
-    <!-- =====================================================
-         TASK MANAGEMENT
-         ===================================================== -->
-
-    <section
-        class="form-card"
-        id="tasks">
+    <!-- TASK MANAGEMENT -->
+    <section class="form-card" id="tasks">
 
         <div class="card-title">
             <span>✅</span>
             <span>Task Management</span>
         </div>
 
-
         <form id="taskForm">
-
             <div class="form-group">
-
-                <label for="taskTitle">
-                    Task Title
-                </label>
-
-                <input
-                    type="text"
-                    id="taskTitle"
-                    placeholder="Enter task title"
-                    required>
-
+                <label for="taskTitle">Task Title</label>
+                <input type="text" id="taskTitle"
+                       placeholder="Enter task title" required>
             </div>
 
-
             <div class="form-group">
-
-                <label for="taskDescription">
-                    Description
-                </label>
-
-                <textarea
-                    id="taskDescription"
-                    placeholder="Enter task description"></textarea>
-
+                <label for="taskDescription">Description</label>
+                <textarea id="taskDescription"
+                          placeholder="Enter task description"></textarea>
             </div>
 
-
             <div class="form-group">
-
-                <label for="taskPriority">
-                    Priority
-                </label>
-
+                <label for="taskPriority">Priority</label>
                 <select id="taskPriority">
-
-                    <option value="Low">
-                        Low
-                    </option>
-
-                    <option value="Medium" selected>
-                        Medium
-                    </option>
-
-                    <option value="High">
-                        High
-                    </option>
-
+                    <option value="Low">Low</option>
+                    <option value="Medium" selected>Medium</option>
+                    <option value="High">High</option>
                 </select>
-
             </div>
-
 
             <div class="form-group">
-
-                <label for="taskDueDate">
-                    Due Date
-                </label>
-
-                <input
-                    type="date"
-                    id="taskDueDate">
-
+                <label for="taskDueDate">Due Date</label>
+                <input type="date" id="taskDueDate">
             </div>
 
-
-            <button type="submit">
-                Add Task
-            </button>
-
+            <button type="submit">Add Task</button>
         </form>
 
-
-        <div
-            class="list"
-            id="taskList">
-        </div>
-
+        <div class="list" id="taskList"></div>
     </section>
 
 
-    <!-- =====================================================
-         EXPENSE MANAGEMENT
-         ===================================================== -->
-
-    <section
-        class="form-card"
-        id="expenses">
+    <!-- EXPENSE MANAGEMENT -->
+    <section class="form-card" id="expenses">
 
         <div class="card-title">
             <span>💰</span>
             <span>Expense Management</span>
         </div>
 
-
         <form id="expenseForm">
-
             <div class="form-group">
-
-                <label for="expenseTitle">
-                    Expense Title
-                </label>
-
-                <input
-                    type="text"
-                    id="expenseTitle"
-                    placeholder="Enter expense"
-                    required>
-
+                <label for="expenseTitle">Expense Title</label>
+                <input type="text" id="expenseTitle"
+                       placeholder="Enter expense" required>
             </div>
 
-
             <div class="form-group">
-
-                <label for="expenseAmount">
-                    Amount
-                </label>
-
-                <input
-                    type="number"
-                    id="expenseAmount"
-                    placeholder="Enter amount"
-                    min="0"
-                    step="0.01"
-                    required>
-
+                <label for="expenseAmount">Amount</label>
+                <input type="number" id="expenseAmount"
+                       placeholder="Enter amount"
+                       min="0" step="0.01" required>
             </div>
 
-
             <div class="form-group">
-
-                <label for="expenseCategory">
-                    Category
-                </label>
-
+                <label for="expenseCategory">Category</label>
                 <select id="expenseCategory">
-
-                    <option value="Food">
-                        Food
-                    </option>
-
-                    <option value="Travel">
-                        Travel
-                    </option>
-
-                    <option value="Shopping">
-                        Shopping
-                    </option>
-
-                    <option value="Education">
-                        Education
-                    </option>
-
-                    <option value="Other">
-                        Other
-                    </option>
-
+                    <option value="Food">Food</option>
+                    <option value="Travel">Travel</option>
+                    <option value="Shopping">Shopping</option>
+                    <option value="Education">Education</option>
+                    <option value="Other">Other</option>
                 </select>
-
             </div>
 
-
-            <button type="submit">
-                Add Expense
-            </button>
-
+            <button type="submit">Add Expense</button>
         </form>
 
-
-        <div
-            class="list"
-            id="expenseList">
-        </div>
-
+        <div class="list" id="expenseList"></div>
     </section>
 
 
-    <!-- =====================================================
-         NOTES
-         ===================================================== -->
-
-    <section
-        class="form-card"
-        id="notes">
+    <!-- NOTES -->
+    <section class="form-card" id="notes">
 
         <div class="card-title">
             <span>📝</span>
             <span>Notes</span>
         </div>
 
-
         <form id="noteForm">
-
             <div class="form-group">
-
-                <label for="noteTitle">
-                    Note Title
-                </label>
-
-                <input
-                    type="text"
-                    id="noteTitle"
-                    placeholder="Enter note title"
-                    required>
-
+                <label for="noteTitle">Note Title</label>
+                <input type="text" id="noteTitle"
+                       placeholder="Enter note title" required>
             </div>
 
-
             <div class="form-group">
-
-                <label for="noteContent">
-                    Note Content
-                </label>
-
-                <textarea
-                    id="noteContent"
-                    placeholder="Write your note..."
-                    required></textarea>
-
+                <label for="noteContent">Note Content</label>
+                <textarea id="noteContent"
+                          placeholder="Write your note..."
+                          required></textarea>
             </div>
 
-
-            <button type="submit">
-                Save Note
-            </button>
-
+            <button type="submit">Save Note</button>
         </form>
 
-
-        <div
-            class="list"
-            id="noteList">
-        </div>
-
+        <div class="list" id="noteList"></div>
     </section>
 
 
-    <!-- =====================================================
-         EVENTS
-         ===================================================== -->
-
-    <section
-        class="form-card"
-        id="events">
+    <!-- EVENTS -->
+    <section class="form-card" id="events">
 
         <div class="card-title">
             <span>🗓️</span>
             <span>Events</span>
         </div>
 
-
         <form id="eventForm">
-
             <div class="form-group">
-
-                <label for="eventTitle">
-                    Event Title
-                </label>
-
-                <input
-                    type="text"
-                    id="eventTitle"
-                    placeholder="Enter event title"
-                    required>
-
+                <label for="eventTitle">Event Title</label>
+                <input type="text" id="eventTitle"
+                       placeholder="Enter event title" required>
             </div>
 
-
             <div class="form-group">
-
-                <label for="eventDate">
-                    Event Date
-                </label>
-
-                <input
-                    type="date"
-                    id="eventDate"
-                    required>
-
+                <label for="eventDate">Event Date</label>
+                <input type="date" id="eventDate" required>
             </div>
 
-
             <div class="form-group">
-
-                <label for="eventTime">
-                    Event Time
-                </label>
-
-                <input
-                    type="time"
-                    id="eventTime">
-
+                <label for="eventTime">Event Time</label>
+                <input type="time" id="eventTime">
             </div>
 
-
             <div class="form-group">
-
-                <label for="eventDescription">
-                    Description
-                </label>
-
-                <textarea
-                    id="eventDescription"
-                    placeholder="Enter event description"></textarea>
-
+                <label for="eventDescription">Description</label>
+                <textarea id="eventDescription"
+                          placeholder="Enter event description"></textarea>
             </div>
 
-
-            <button type="submit">
-                Add Event
-            </button>
-
+            <button type="submit">Add Event</button>
         </form>
 
+        <div class="list" id="eventList"></div>
+    </section>
 
-        <div
-            class="list"
-            id="eventList">
+
+    <!-- CLOUDLIFE AI CHAT -->
+    <section class="ai-chat-card" id="cloudlife-ai">
+
+        <div class="ai-chat-heading">
+            <h2>🤖 CloudLife AI Assistant</h2>
+            <span class="ai-status" id="aiConnectionStatus">
+                ● Checking backend...
+            </span>
         </div>
+
+        <p class="ai-subtitle">
+            Ask questions about your tasks, expenses, events and notes.
+            Your questions are sent to the CloudLife AI backend.
+        </p>
+
+        <div class="ai-suggestions">
+            <button type="button"
+                    data-ai-question="What are my pending tasks?">
+                📋 Pending Tasks
+            </button>
+
+            <button type="button"
+                    data-ai-question="How much have I spent?">
+                💰 My Expenses
+            </button>
+
+            <button type="button"
+                    data-ai-question="What events do I have coming up?">
+                🗓️ Upcoming Events
+            </button>
+
+            <button type="button"
+                    data-ai-question="Summarize my notes.">
+                📝 Summarize Notes
+            </button>
+        </div>
+
+        <div class="ai-messages" id="aiMessages" aria-live="polite">
+            <div class="ai-message assistant">
+                Hi! I'm CloudLife AI. Ask me about your CloudLife data.
+            </div>
+        </div>
+
+        <form class="ai-composer" id="aiChatForm">
+            <input
+                id="aiQuestion"
+                type="text"
+                placeholder="Ask CloudLife AI..."
+                autocomplete="off"
+                required
+            >
+            <button id="aiSendButton" type="submit">Send ➤</button>
+        </form>
 
     </section>
 
 
-    <!-- ================= FOOTER ================= -->
-
+    <!-- FOOTER -->
     <footer>
-
-        <p>
-            ☁️ CloudLife
-        </p>
-
-        <p>
-            Cloud-Based Personal Life Management System
-        </p>
-
-        <p>
-            Built with Node.js • Express • Supabase • Render
-        </p>
-
+        <p>☁️ CloudLife</p>
+        <p>Cloud-Based Personal Life Management System</p>
+        <p>Built with Node.js • Express • Supabase • Render</p>
     </footer>
 
 </main>
 
 
-<!-- ================= SCRIPTS ================= -->
-
+<!-- CURRENT DATE -->
 <script>
-
-    /* Current date */
-
-    const dateElement =
-        document.getElementById("currentDate");
+    const dateElement = document.getElementById("currentDate");
 
     if (dateElement) {
-
-        const today = new Date();
-
-        dateElement.textContent =
-            today.toLocaleDateString(
-                "en-IN",
-                {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric"
-                }
-            );
-
+        dateElement.textContent = new Date().toLocaleDateString(
+            "en-IN",
+            {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric"
+            }
+        );
     }
-
 </script>
 
 
-<!-- Authentication -->
+<!-- EXISTING APP SCRIPTS -->
 <script src="auth.js"></script>
-
-<!-- Main CloudLife functionality -->
 <script src="script.js"></script>
 
+
+<!-- CLOUDLIFE AI FUNCTIONALITY -->
+<script>
+(function () {
+    const form = document.getElementById("aiChatForm");
+    const input = document.getElementById("aiQuestion");
+    const sendButton = document.getElementById("aiSendButton");
+    const messages = document.getElementById("aiMessages");
+    const status = document.getElementById("aiConnectionStatus");
+
+    function addAIMessage(text, role) {
+        const bubble = document.createElement("div");
+        bubble.className = "ai-message " + role;
+        bubble.textContent = text;
+        messages.appendChild(bubble);
+        messages.scrollTop = messages.scrollHeight;
+        return bubble;
+    }
+
+    async function checkBackend() {
+        try {
+            const response = await fetch("/api/health");
+
+            if (!response.ok) {
+                throw new Error("Health check failed");
+            }
+
+            status.textContent = "● Backend connected";
+            status.style.color = "#16834a";
+        } catch (error) {
+            status.textContent = "● Backend unavailable";
+            status.style.color = "#c0392b";
+        }
+    }
+
+    async function askCloudLifeAI(question) {
+        const text = question.trim();
+
+        if (!text || sendButton.disabled) {
+            return;
+        }
+
+        addAIMessage("You: " + text, "user");
+
+        input.value = "";
+        input.disabled = true;
+        sendButton.disabled = true;
+
+        const waiting = addAIMessage(
+            "CloudLife AI is thinking...",
+            "assistant"
+        );
+
+        try {
+            const response = await fetch("/api/ai/chat", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    message: text
+                })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(
+                    result.error || "AI request failed"
+                );
+            }
+
+            waiting.textContent = "CloudLife AI: " + result.reply;
+
+        } catch (error) {
+            waiting.textContent =
+                "AI request failed: " + error.message +
+                ". Check the server terminal for details.";
+        } finally {
+            input.disabled = false;
+            sendButton.disabled = false;
+            input.focus();
+            messages.scrollTop = messages.scrollHeight;
+        }
+    }
+
+    form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        askCloudLifeAI(input.value);
+    });
+
+    document.querySelectorAll("[data-ai-question]").forEach(
+        function (button) {
+            button.addEventListener("click", function () {
+                askCloudLifeAI(
+                    button.getAttribute("data-ai-question")
+                );
+            });
+        }
+    );
+
+    checkBackend();
+})();
+</script>
 
 </body>
 </html>
