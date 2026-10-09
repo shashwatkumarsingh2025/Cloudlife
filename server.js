@@ -14,13 +14,17 @@ const dotenv = require("dotenv");
 const swaggerUi = require("swagger-ui-express");
 const multer = require("multer");
 
-
 // ============================================================
 // LOAD ENVIRONMENT VARIABLES
 // ============================================================
 
 dotenv.config();
 
+console.log(
+    "Gemini API key loaded:",
+    !!process.env.GEMINI_API_KEY
+);
+const aiRoutes = require("./routes/ai");
 
 // ============================================================
 // SUPABASE
@@ -1867,7 +1871,7 @@ app.delete(
     }
 );
 
-
+app.use("/api/ai", aiRoutes);
 // ============================================================
 // 404 ROUTE
 // IMPORTANT: THIS MUST BE THE LAST ROUTE
