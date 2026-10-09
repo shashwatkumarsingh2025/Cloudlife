@@ -224,7 +224,7 @@ async function addTask() {
     const titleElement = document.getElementById("taskTitle");
     const descriptionElement = document.getElementById("taskDescription");
     const priorityElement = document.getElementById("taskPriority");
-    const dateElement = document.getElementById("taskDate");
+    const dateElement = document.getElementById("taskDueDate");
 
     if (!titleElement || !descriptionElement || !priorityElement) {
         alert("Task form fields could not be found.");
